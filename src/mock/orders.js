@@ -1,4 +1,4 @@
-export const products = [[
+export const orders = [
     {
       "id": 1,
       "userId": 2,
@@ -17,4 +17,3 @@ export const products = [[
       "created_at": "2025-01-24T23:52:52"
     }
   ]
-  

@@ -1,4 +1,4 @@
-export const products = [[
+export const users = [
     {
       "id": 1,
       "name": "Jennifer Price",

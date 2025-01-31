@@ -1,17 +1,26 @@
 <template>
     <div id="app">
+        <nav>
+            <router-link to="/">Produits</router-link> |
+            <router-link to="/orders">Commandes</router-link> |
+            <router-link to="/cart">Panier</router-link> |
+            <router-link to="/invoices">Factures</router-link> |
+            <router-link to="/users">Utilisateurs</router-link>
+        </nav>
+
         <router-view></router-view>
     </div>
 </template>
 
-<script setup>
-</script>
-
 <style>
-/* Optionnel : Ajoute des styles globaux ici */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+nav {
+    background: #333;
+    padding: 10px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-right: 10px;
 }
 </style>

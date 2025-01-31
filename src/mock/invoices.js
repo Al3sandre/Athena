@@ -1,4 +1,4 @@
-export const products = [[
+export const invoices = [
     {
       "id": 1,
       "order_id": 5,

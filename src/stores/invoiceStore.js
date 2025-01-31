@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { invoices as mockInvoices } from '@/mock/invoces';
+import { invoices as mockInvoices } from '@/mock/invoices';
 
 export const useInvoiceStore = defineStore('invoiceStore', {
   state: () => ({

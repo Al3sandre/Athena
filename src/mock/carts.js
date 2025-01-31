@@ -1,4 +1,4 @@
-export const products = [[
+export const carts = [
     {
       "id": 1,
       "userId": 2,
@@ -15,4 +15,3 @@ export const products = [[
       "created_at": "2025-01-09T07:46:20"
     }
   ]
-  
