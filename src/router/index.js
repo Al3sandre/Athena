@@ -1,12 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '@/views/HomeView.vue';
-import LoginView from '@/views/LoginView.vue';
-import DashboardView from '@/views/DashboardView.vue';
+import ProductListView from '../views/ProductListView.vue';
+
 
 const routes = [
-  { path: '/', component: HomeView },
-  { path: '/login', component: LoginView },
-  { path: '/dashboard', component: DashboardView, meta: { requiresAuth: true } },
+  { path: '/', component: ProductListView },
 ];
 
 const router = createRouter({
