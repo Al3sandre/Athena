@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { orders as mockOrders } from '../mock/order';
+import { orders as mockOrders } from '@/mock/order';
 
 export const useOrderStore = defineStore('orderStore', {
   state: () => ({

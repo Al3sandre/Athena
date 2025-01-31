@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { carts as mockCarts } from '../mock/cart';
+import { carts as mockCarts } from '@/mock/cart';
 
 export const useCartStore = defineStore('cartStore', {
   state: () => ({

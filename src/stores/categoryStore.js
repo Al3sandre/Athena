@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { categories as mockCategories } from '../mock/categories';
+import { categories as mockCategories } from '@/mock/categories';
 
 export const useCategoryStore = defineStore('categoryStore', {
   state: () => ({
