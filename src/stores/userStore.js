@@ -1,22 +1,20 @@
 import { defineStore } from 'pinia';
-import { users as mockUsers } from '@/mock/users';
 
 export const useUserStore = defineStore('userStore', {
   state: () => ({
-    users: [...mockUsers],
-    currentUser: null
+    user: null, // L'utilisateur connecté
   }),
   actions: {
-    login(email) {
-      const user = this.users.find(u => u.email === email);
-      if (user) {
-        this.currentUser = user;
-        localStorage.setItem('user', JSON.stringify(user));
-      }
+    login(userData) {
+      this.user = userData; // Simule une connexion
+      localStorage.setItem('user', JSON.stringify(userData));
     },
     logout() {
-      this.currentUser = null;
+      this.user = null;
       localStorage.removeItem('user');
+    },
+    getRole() {
+      return this.user ? this.user.role : null;
     }
   }
 });

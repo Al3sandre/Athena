@@ -1,11 +1,14 @@
 <template>
     <div id="app">
         <nav>
-            <router-link to="/">Produits</router-link> |
+            <router-link to="/">Home</router-link> |
+            <router-link to="/products">Produits</router-link> |
             <router-link to="/orders">Commandes</router-link> |
             <router-link to="/cart">Panier</router-link> |
             <router-link to="/invoices">Factures</router-link> |
-            <router-link to="/users">Utilisateurs</router-link>
+            <router-link to="/users">Utilisateurs</router-link> |
+            <router-link to="/profile">Mon Profil</router-link> |
+            <router-link to="/login">Connexion</router-link>
         </nav>
 
         <router-view></router-view>
