@@ -1,33 +1,53 @@
 import { defineStore } from 'pinia';
-import { users as mockUsers } from '@/mock/users';
+import pb from '@/api/pocketbase';
 
 export const useUserStore = defineStore('userStore', {
   state: () => ({
-    users: [...mockUsers], // Récupère les utilisateurs depuis le fichier mock
-    user: null // Utilisateur actuellement connecté
+    user: pb.authStore.model // Récupérer l'utilisateur connecté depuis PocketBase
   }),
+
   actions: {
-    login(email, password) {
-      const foundUser = this.users.find(u => u.email === email && u.password === password);
-      if (foundUser) {
-        this.user = { ...foundUser, password: undefined }; // Ne pas stocker le mot de passe
-        localStorage.setItem('user', JSON.stringify(this.user));
-        return true; // Connexion réussie
+    // ✅ Connexion avec PocketBase
+    async login(email, password) {
+      try {
+        const authData = await pb.collection('users').authWithPassword(email, password);
+        this.user = authData.record; // Stocke l'utilisateur récupéré
+        return true; // Succès
+      } catch (error) {
+        console.error('Erreur de connexion:', error);
+        return false; // Échec
       }
-      return false; // Échec de connexion
     },
-    logout() {
+
+    // ✅ Déconnexion
+    async logout() {
+      pb.authStore.clear();
       this.user = null;
-      localStorage.removeItem('user');
     },
-    loadUserFromStorage() {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        this.user = JSON.parse(savedUser);
+
+    // ✅ Charger l'utilisateur connecté
+    async loadUserFromSession() {
+      if (pb.authStore.isValid) {
+        this.user = pb.authStore.model;
+      } else {
+        this.user = null;
       }
     },
+
+    // ✅ Récupérer le rôle de l'utilisateur
     getRole() {
       return this.user ? this.user.role : null;
+    },
+
+    // ✅ Créer un nouvel utilisateur
+    async createUser(userData) {
+      try {
+        const newUser = await pb.collection('users').create(userData);
+        return newUser;
+      } catch (error) {
+        console.error('Erreur lors de la création de l’utilisateur:', error);
+        throw error;
+      }
     }
   }
 });

@@ -1,15 +1,38 @@
 import { defineStore } from 'pinia';
 
-export const useNotificationStore = defineStore('notification', {
+export const useNotificationStore = defineStore('notificationStore', {
   state: () => ({
-    notifications: []
+    notifications: JSON.parse(localStorage.getItem('notifications')) || [] // Chargement persistant
   }),
+
   actions: {
-    addNotification(message, type = 'info') {
-      this.notifications.push({ message, type, id: Date.now() });
+    // ✅ Ajouter une notification avec persistance
+    addNotification(message, type = 'info', duration = 3000) {
+      const notification = { id: Date.now(), message, type };
+      this.notifications.push(notification);
+      this.saveNotifications();
+
+      // Suppression automatique après la durée spécifiée
       setTimeout(() => {
-        this.notifications.shift();
-      }, 3000);
+        this.removeNotification(notification.id);
+      }, duration);
+    },
+
+    // ✅ Supprimer une notification spécifique
+    removeNotification(id) {
+      this.notifications = this.notifications.filter(n => n.id !== id);
+      this.saveNotifications();
+    },
+
+    // ✅ Vider toutes les notifications
+    clearNotifications() {
+      this.notifications = [];
+      localStorage.removeItem('notifications');
+    },
+
+    // ✅ Sauvegarder les notifications dans le localStorage
+    saveNotifications() {
+      localStorage.setItem('notifications', JSON.stringify(this.notifications));
     }
   }
 });

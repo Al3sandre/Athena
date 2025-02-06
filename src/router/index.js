@@ -63,7 +63,6 @@ router.beforeEach((to, from, next) => {
       return next('/'); // Redirige vers l'accueil si l'accès est interdit
     }
   }
-
   next();
 });
 

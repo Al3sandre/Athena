@@ -20,7 +20,8 @@
 import { useUserStore } from '@/stores/userStore';
 
 const userStore = useUserStore();
-userStore.loadUserFromStorage();
+userStore.loadUserFromSession();
+
 
 const logout = () => {
     userStore.logout();
