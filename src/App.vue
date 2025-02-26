@@ -2,11 +2,13 @@
     <div id="app">
         <Header />
         <router-view></router-view>
+        <Notification />
     </div>
 </template>
 
 <script setup>
 import Header from '@/components/Header.vue';
+import Notification from '@/components/NotificationBanner.vue';
 </script>
 
 

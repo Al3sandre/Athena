@@ -11,11 +11,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import { useNotificationStore } from '@/stores/notifications';
 import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
+const notificationStore = useNotificationStore();
 const router = useRouter();
 
 const email = ref('');
@@ -23,13 +25,20 @@ const password = ref('');
 const error = ref('');
 
 const handleLogin = async () => {
-  const success = await userStore.login(email.value, password.value, router);
+  const success = await userStore.login(email.value, password.value);
   if (success) {
-    router.push('/'); // Redirection vers la page d’accueil après connexion
+    router.push(router.currentRoute.value.query.redirect || '/'); // Redirection vers la page d’accueil après connexion
   } else {
     error.value = "Identifiants incorrects.";
   }
 };
+
+// Ajouter une notification lorsque l'utilisateur accède à la page de connexion
+onMounted(() => {
+  if (!userStore.user) {
+    notificationStore.addNotification("Si vous n'avez pas d'identifiant, veuillez vous rapprocher de l'administrateur.", 'info', 5000);
+  }
+});
 </script>
 
 <style scoped>
