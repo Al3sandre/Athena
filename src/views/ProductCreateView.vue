@@ -71,15 +71,20 @@ const handleSubmit = async () => {
             category: category.value
         };
 
-        console.log('Données du produit:', productData);
-
         if (imageFile.value) {
             const formData = new FormData();
+            formData.append('name', name.value);
+            formData.append('description', description.value);
+            formData.append('price', price.value);
+            formData.append('stock', stock.value);
+            formData.append('category', category.value);
             formData.append('image', imageFile.value);
-            productData.image = formData;
+
+            await productStore.addProduct(formData);
+        } else {
+            await productStore.addProduct(productData);
         }
 
-        await productStore.addProduct(productData);
         router.push('/products');
     } catch (error) {
         console.error('Erreur lors de la création du produit:', error);

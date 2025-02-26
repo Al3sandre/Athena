@@ -12,7 +12,14 @@
         </div>
         <ul>
             <li v-for="product in filteredProducts" :key="product.id">
-                {{ product.name }} - {{ product.price }}€
+                <img :src="product.image ? product.image : 'https://www.mon-site-bug.fr/uploads/products/default-product.png'"
+                    alt="Image du produit" />
+                <div>
+                    <h2>{{ product.name }}</h2>
+                    <p>Catégorie: {{ product.category.name }}</p>
+                    <p>Prix: {{ product.price }}€</p>
+                    <p>Quantité disponible: {{ product.stock }}</p>
+                </div>
             </li>
         </ul>
     </div>
@@ -41,7 +48,7 @@ const filteredProducts = computed(() => {
     return products.value.filter(product => {
         return (
             (!searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase())) &&
-            (!selectedCategory.value || product.category === selectedCategory.value)
+            (!selectedCategory.value || product.category.id === selectedCategory.value)
         );
     });
 });

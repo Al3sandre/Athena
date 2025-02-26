@@ -22,11 +22,11 @@ export const useProductStore = defineStore('productStore', {
     async addProduct(productData) {
       try {
         let newProduct;
-        if (productData.image) {
-          newProduct = await pb.collection('products').create(productData.image);
-          productData.image = newProduct.image;
+        if (productData instanceof FormData) {
+          newProduct = await pb.collection('products').create(productData);
+        } else {
+          newProduct = await pb.collection('products').create(productData);
         }
-        newProduct = await pb.collection('products').create(productData);
         this.products.push(newProduct); // Ajouter à la liste locale
       } catch (error) {
         console.error('Erreur lors de l’ajout du produit:', error);
