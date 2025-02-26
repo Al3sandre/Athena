@@ -11,6 +11,7 @@ export const useCategoryStore = defineStore('categoryStore', {
     async fetchCategories() {
       try {
         this.categories = await pb.collection('categories').getFullList();
+        console.log('Categories:', this.categories);
       } catch (error) {
         console.error('Erreur lors de la récupération des catégories:', error);
       }

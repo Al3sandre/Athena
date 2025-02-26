@@ -10,7 +10,9 @@ export const useProductStore = defineStore('productStore', {
     // ✅ Récupérer tous les produits depuis PocketBase
     async fetchProducts() {
       try {
-        this.products = await pb.collection('products').getFullList();
+        this.products = await pb.collection('products').getFullList({
+          expand: 'category' // Assurez-vous que la catégorie est incluse
+        });
       } catch (error) {
         console.error('Erreur lors de la récupération des produits:', error);
       }
@@ -19,10 +21,16 @@ export const useProductStore = defineStore('productStore', {
     // ✅ Ajouter un produit dans PocketBase
     async addProduct(productData) {
       try {
-        const newProduct = await pb.collection('products').create(productData);
+        let newProduct;
+        if (productData.image) {
+          newProduct = await pb.collection('products').create(productData.image);
+          productData.image = newProduct.image;
+        }
+        newProduct = await pb.collection('products').create(productData);
         this.products.push(newProduct); // Ajouter à la liste locale
       } catch (error) {
         console.error('Erreur lors de l’ajout du produit:', error);
+        throw error;
       }
     },
 
