@@ -28,6 +28,7 @@ const handleLogin = async () => {
   const success = await userStore.login(email.value, password.value);
   if (success) {
     router.push(router.currentRoute.value.query.redirect || '/'); // Redirection vers la page d’accueil après connexion
+    notificationStore.clearNotifications();
   } else {
     error.value = "Identifiants incorrects.";
   }
