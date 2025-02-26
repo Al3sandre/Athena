@@ -23,7 +23,7 @@ import StockArrivalsCreateView from '@/views/StockArrivalsCreateView.vue';
 import StockArrivalsEditView from '@/views/StockArrivalsEditView.vue';
 // Définition des rôles autorisés par page
 const routes = [
-  { path: '/', component: HomeView, name: 'Home' },
+  { path: '/', component: HomeView, name: 'Home', meta:{ requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/products', component: ProductListView, name: 'products', meta: { requiresAuth: true, roles: ['store','admin']}  },
   { path: '/product/:id', component: ProductDetailView, name: 'ProductDetail', meta: { requiresAuth: true, roles: ['store','admin'] } },
   { path: '/product/create', component: ProductCreateView, name: 'product-create', meta: { requiresAuth: true, roles: ['admin'] } },

@@ -1,8 +1,13 @@
 # Projet de gestion 
 ## Démarrage du serveur pocket base 
+donner les droit au fichier : 
+chmod +x pocketbase
 Dans le répertoire pocketbase/ 
 -> ./pocketbase serve
 
+## Donner les droits au répertoire de l'application
+sudo chmod -R u+w /var/www/html/Athena/gestion-entreprise
+sudo chown -R votre_utilisateur:votre_utilisateur /var/www/html/Athena/gestion-entreprise
 
 # Arborescence des fichiers 
 
