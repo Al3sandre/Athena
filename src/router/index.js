@@ -23,17 +23,17 @@ import StockArrivalsCreateView from '@/views/StockArrivalsCreateView.vue';
 import StockArrivalsEditView from '@/views/StockArrivalsEditView.vue';
 // Définition des rôles autorisés par page
 const routes = [
-  { path: '/', component: HomeView, name: 'Home', meta:{ requiresAuth: true, roles: ['admin', 'store'] } },
-  { path: '/products', component: ProductListView, name: 'products', meta: { requiresAuth: true, roles: ['store','admin']}  },
-  { path: '/product/:id', component: ProductDetailView, name: 'ProductDetail', meta: { requiresAuth: true, roles: ['store','admin'] } },
+  { path: '/', component: HomeView, name: 'Home', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
+  { path: '/products', component: ProductListView, name: 'products', meta: { requiresAuth: true, roles: ['store', 'admin'] } },
+  { path: '/product/:id', component: ProductDetailView, name: 'ProductDetail', meta: { requiresAuth: true, roles: ['store', 'admin'] } },
   { path: '/product/create', component: ProductCreateView, name: 'product-create', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/product/edit/:id', component: ProductEditView, name: 'product-edit', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/orders', component: OrderListView, name: 'Orders', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/order/:id', component: OrderDetailView, name: 'OrderDetail', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/cart', component: CartView, name: 'Cart', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
-  { path: '/stock-arrivals',component: StockArrivalsView,  name: 'stock-arrivals',  meta: { requiresAuth: true, roles: ['admin'] }}, 
-  { path: '/stock-arrivals/create',component: StockArrivalsCreateView,  name: 'stock-arrivals-create',  meta: { requiresAuth: true, roles: ['admin'] }}, 
-  { path: '/stock-arrivals/edit/:id',component: StockArrivalsEditView,  name: 'stock-arrivals-edit',  meta: { requiresAuth: true, roles: ['admin'] }}, 
+  { path: '/stock-arrivals', component: StockArrivalsView, name: 'stock-arrivals', meta: { requiresAuth: true, roles: ['admin'] } },
+  { path: '/stock-arrivals/create', component: StockArrivalsCreateView, name: 'stock-arrivals-create', meta: { requiresAuth: true, roles: ['admin'] } },
+  { path: '/stock-arrivals/edit/:id', component: StockArrivalsEditView, name: 'stock-arrivals-edit', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/invoices', component: InvoiceListView, name: 'Invoices', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/invoice/:id', component: InvoiceDetailView, name: 'InvoiceDetail', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/users', component: UserListView, name: 'Users', meta: { requiresAuth: true, roles: ['admin'] } },
@@ -53,7 +53,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
   const userRole = userStore.getRole();
-  
+
   if (to.meta.requiresAuth) {
     if (!userRole) {
       return next('/login'); // Redirection vers la connexion si l'utilisateur n'est pas connecté

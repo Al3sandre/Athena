@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import pb from '@/api/pocketbase';
 
+// Ce fichier définit un store Pinia pour gérer les utilisateurs, y compris la connexion, la déconnexion, la création d'utilisateurs et la récupération des rôles.
+
 export const useUserStore = defineStore('userStore', {
   state: () => ({
     user: pb.authStore.model // Récupérer l'utilisateur connecté depuis PocketBase
@@ -37,6 +39,11 @@ export const useUserStore = defineStore('userStore', {
     // ✅ Récupérer le rôle de l'utilisateur
     getRole() {
       return this.user ? this.user.role : null;
+    },
+
+    // ✅ Vérifier si l'utilisateur est administrateur
+    isAdmin() {
+      return this.getRole() === 'admin';
     },
 
     // ✅ Créer un nouvel utilisateur
