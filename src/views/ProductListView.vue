@@ -1,5 +1,4 @@
 <template>
-    <!-- TODO Verifier l'affichage categories et la gestion des images -->
     <div>
         <h1>Liste des Produits</h1>
         <div>
@@ -13,8 +12,7 @@
         </div>
         <ul>
             <li v-for="product in filteredProducts" :key="product.id">
-                <img :src="product.image ? product.image : 'https://www.mon-site-bug.fr/uploads/products/default-product.png'"
-                    alt="Image du produit" />
+                <img :src="getImageUrl(product)" alt="Image du produit" />
                 <div>
                     <h2>{{ product.name }}</h2>
                     <p>Catégorie: {{ product.expand.category.name }}</p>
@@ -56,11 +54,11 @@ const filteredProducts = computed(() => {
 const goToCreateProduct = () => {
     router.push({ name: 'product-create' });
 };
-
+const getImageUrl = (product) => {
+    return productStore.getImageUrl(product)
+};
 onMounted(() => {
     productStore.fetchProducts();
-    categoryStore.fetchCategories().then(() => {
-        console.log('Produit récupérées:', products.value);
-    });
+    categoryStore.fetchCategories();
 });
 </script>

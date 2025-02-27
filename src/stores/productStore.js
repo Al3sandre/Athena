@@ -11,9 +11,8 @@ export const useProductStore = defineStore('productStore', {
     async fetchProducts() {
       try {
         this.products = await pb.collection('products').getFullList({
-          expand: 'category'// Assurez-vous que la catégorie est incluse
+          expand: 'category' // Assurez-vous que la catégorie est incluse
         });
-
       } catch (error) {
         console.error('Erreur lors de la récupération des produits:', error);
       }
@@ -56,6 +55,14 @@ export const useProductStore = defineStore('productStore', {
       } catch (error) {
         console.error('Erreur lors de la modification du produit:', error);
       }
+    },
+
+    // ✅ Générer l'URL de l'image
+    getImageUrl(product) {
+      if (product) {
+        return `http://127.0.0.1:8090/api/files/${product.collectionId}/${product.id}/${product.image}`;
+      }
+      return 'https://www.mon-site-bug.fr/uploads/products/default-product.png';
     }
   }
 });
