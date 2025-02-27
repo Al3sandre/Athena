@@ -11,8 +11,9 @@ export const useProductStore = defineStore('productStore', {
     async fetchProducts() {
       try {
         this.products = await pb.collection('products').getFullList({
-          expand: 'category' // Assurez-vous que la catégorie est incluse
+          expand: 'category'// Assurez-vous que la catégorie est incluse
         });
+
       } catch (error) {
         console.error('Erreur lors de la récupération des produits:', error);
       }

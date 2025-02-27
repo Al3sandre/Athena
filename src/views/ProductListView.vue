@@ -1,4 +1,5 @@
 <template>
+    <!-- TODO Verifier l'affichage categories et la gestion des images -->
     <div>
         <h1>Liste des Produits</h1>
         <div>
@@ -16,7 +17,7 @@
                     alt="Image du produit" />
                 <div>
                     <h2>{{ product.name }}</h2>
-                    <p>Catégorie: {{ product.category.name }}</p>
+                    <p>Catégorie: {{ product.expand.category.name }}</p>
                     <p>Prix: {{ product.price }}€</p>
                     <p>Quantité disponible: {{ product.stock }}</p>
                 </div>
@@ -36,7 +37,6 @@ const productStore = useProductStore();
 const categoryStore = useCategoryStore();
 const userStore = useUserStore();
 const router = useRouter();
-
 const searchQuery = ref('');
 const selectedCategory = ref('');
 
@@ -59,6 +59,8 @@ const goToCreateProduct = () => {
 
 onMounted(() => {
     productStore.fetchProducts();
-    categoryStore.fetchCategories();
+    categoryStore.fetchCategories().then(() => {
+        console.log('Produit récupérées:', products.value);
+    });
 });
 </script>
