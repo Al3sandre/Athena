@@ -1,6 +1,7 @@
 <template>
     <div id="app">
         <Header />
+        <CartWidget />
         <router-view></router-view>
         <Notification />
     </div>
@@ -9,6 +10,7 @@
 <script setup>
 import Header from '@/components/Header.vue';
 import Notification from '@/components/NotificationBanner.vue';
+import CartWidget from '@/components/CartWidget.vue';
 </script>
 
 

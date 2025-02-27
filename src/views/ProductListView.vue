@@ -61,8 +61,6 @@ const getImageUrl = (product) => {
 };
 onMounted(() => {
     productStore.fetchProducts();
-    categoryStore.fetchCategories().then(() => {
-        console.log(categories.value);
-    });
+    categoryStore.fetchCategories();
 });
 </script>
