@@ -1,5 +1,5 @@
 <template>
-    <div class="cart-widget" v-if="user">
+    <div v-if="user" class="cart-widget">
         <button @click="toggleCart">Panier ({{ cart.length }})</button>
         <div v-if="isCartOpen" class="cart-dropdown">
             <ul v-if="!isLoading">
@@ -43,8 +43,6 @@ const getProductDetails = (productId) => {
 const fetchCartData = async () => {
     if (user.value) {
         await cartStore.fetchCart(user.value.id);
-        console.log('Panier chargé:', cartStore.cart); // Vérifiez le panier chargé
-        console.log('Produits chargés:', cartStore.products); // Vérifiez les produits chargés
     }
 };
 

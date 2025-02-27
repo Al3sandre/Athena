@@ -1,32 +1,33 @@
 import { defineStore } from 'pinia';
 import pb from '@/api/pocketbase';
 import { useProductStore } from '@/stores/productStore';
+import { useUserStore } from '@/stores/userStore';
 
 export const useCartStore = defineStore('cartStore', {
   state: () => ({
     cart: [],
-    products: [], // Ajouter un état pour stocker les détails des produits
-    isLoading: false // Ajouter un état de chargement
+    products: [],
+    isLoading: false,
   }),
 
   actions: {
-    // ✅ Charger le panier depuis PocketBase (lié à l'utilisateur connecté)
-    async fetchCart(userId) {
-      this.isLoading = true; // Début du chargement
+    async fetchCart() {
+      this.isLoading = true;
+      const userStore = useUserStore();
+      const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         const userCart = await pb.collection('carts').getFirstListItem(`user_id="${userId}"`);
         if (userCart) {
-          this.cart = userCart.items; // Charger le panier existant
-          await this.fetchProductDetails(); // Récupérer les détails des produits
+          this.cart = userCart.items;
+          await this.fetchProductDetails();
         }
       } catch (error) {
         console.error("Erreur lors de la récupération du panier :", error);
       } finally {
-        this.isLoading = false; // Fin du chargement
+        this.isLoading = false;
       }
     },
 
-    // ✅ Récupérer les détails des produits
     async fetchProductDetails() {
       try {
         const productStore = useProductStore();
@@ -38,8 +39,9 @@ export const useCartStore = defineStore('cartStore', {
       }
     },
 
-    // ✅ Ajouter un produit au panier
-    async addToCart(userId, product) {
+    async addToCart(product) {
+      const userStore = useUserStore();
+      const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         const existingItem = this.cart.find(p => p.product_id === product.id);
         if (existingItem) {
@@ -48,37 +50,37 @@ export const useCartStore = defineStore('cartStore', {
           this.cart.push({ product_id: product.id, quantity: 1 });
         }
 
-        // Sauvegarde dans PocketBase
         await this.saveCart(userId);
-        await this.fetchProductDetails(); // Mettre à jour les détails des produits
+        await this.fetchProductDetails();
       } catch (error) {
         console.error("Erreur lors de l'ajout au panier :", error);
       }
     },
 
-    // ✅ Retirer un produit du panier
-    async removeFromCart(userId, productId) {
+    async removeFromCart(productId) {
+      const userStore = useUserStore();
+      const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         this.cart = this.cart.filter(p => p.product_id !== productId);
         await this.saveCart(userId);
-        await this.fetchProductDetails(); // Mettre à jour les détails des produits
+        await this.fetchProductDetails();
       } catch (error) {
         console.error("Erreur lors de la suppression du produit du panier :", error);
       }
     },
 
-    // ✅ Vider entièrement le panier
-    async clearCart(userId) {
+    async clearCart() {
+      const userStore = useUserStore();
+      const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         this.cart = [];
         await this.saveCart(userId);
-        this.products = []; // Vider les détails des produits
+        this.products = [];
       } catch (error) {
         console.error("Erreur lors de la suppression du panier :", error);
       }
     },
 
-    // ✅ Sauvegarde du panier dans PocketBase
     async saveCart(userId) {
       try {
         const existingCart = await pb.collection('carts').getFirstListItem(`user_id="${userId}"`);
@@ -89,6 +91,16 @@ export const useCartStore = defineStore('cartStore', {
         }
       } catch (error) {
         console.error("Erreur lors de la sauvegarde du panier :", error);
+      }
+    },
+
+    async updateQuantity(productId, quantity) {
+      const userStore = useUserStore();
+      const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
+      const item = this.cart.find(p => p.product_id === productId);
+      if (item) {
+        item.quantity = quantity;
+        await this.saveCart(userId); // Utilisez userId pour obtenir l'ID de l'utilisateur
       }
     }
   }
