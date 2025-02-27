@@ -46,7 +46,7 @@ const filteredProducts = computed(() => {
     return products.value.filter(product => {
         return (
             (!searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase())) &&
-            (!selectedCategory.value || product.category.id === selectedCategory.value)
+            (!selectedCategory.value || product.expand.category.id === selectedCategory.value)
         );
     });
 });
@@ -59,6 +59,8 @@ const getImageUrl = (product) => {
 };
 onMounted(() => {
     productStore.fetchProducts();
-    categoryStore.fetchCategories();
+    categoryStore.fetchCategories().then(() => {
+        console.log(categories.value);
+    });
 });
 </script>
