@@ -34,11 +34,16 @@
 
                     <div @dblclick="editField('category')">
                         <label for="category">Catégorie :</label>
-                        <select v-if="editableField === 'category'" v-model="product.category" @blur="saveField">
-                            <option v-for="category in categories" :key="category.id" :value="category.id">{{
-                                category.name }}</option>
-                        </select>
-                        <span v-else>{{ product.expand?.category?.name || 'Non spécifiée' }}</span>
+                        <div v-if="editableField === 'category'">
+                            <div>
+                                <button v-for="category in categories" :key="category.id"
+                                    @click="selectCategory(category.id)"
+                                    :class="{ selected: product.category === category.id }">
+                                    {{ category.name }}
+                                </button>
+                            </div>
+                        </div>
+                        <span v-else>{{ getCategoryName(product.category) || 'Non spécifiée' }}</span>
                     </div>
 
                     <div>
@@ -54,7 +59,7 @@
                     <p>Description : {{ product.description }}</p>
                     <p>Prix : {{ product.price }}€</p>
                     <p>Stock : {{ product.stock }}</p>
-                    <p>Catégorie : {{ product.expand?.category?.name || 'Non spécifiée' }}</p>
+                    <p>Catégorie : {{ getCategoryName(product.category) || 'Non spécifiée' }}</p>
                     <img :src="getImageUrl(product)" alt="Image du produit" />
                 </div>
                 <button @click="goBack">Retour à la liste des produits</button>
@@ -91,6 +96,7 @@ onMounted(async () => {
         await categoryStore.fetchCategories();
         categories.value = categoryStore.categories;
         product.value = await productStore.fetchProductById(route.params.id);
+        product.value.category = product.value.expand?.category?.id || ''; // Assurez-vous que la catégorie est correctement définie
     } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
     } finally {
@@ -112,6 +118,11 @@ const handleFileUpload = (event) => {
 
 const triggerFileInput = () => {
     fileInput.value.click();
+};
+
+const selectCategory = (categoryId) => {
+    product.value.category = categoryId;
+    editableField.value = null; // Fermer l'édition après la sélection
 };
 
 const saveChanges = async () => {
@@ -146,4 +157,16 @@ const goBack = () => {
 const getImageUrl = (product) => {
     return productStore.getImageUrl(product);
 };
+
+const getCategoryName = (categoryId) => {
+    const category = categories.value.find(cat => cat.id === categoryId);
+    return category ? category.name : '';
+};
 </script>
+
+<style scoped>
+.selected {
+    background-color: #007bff;
+    color: white;
+}
+</style>
