@@ -15,7 +15,7 @@
                 <img :src="getImageUrl(product)" alt="Image du produit" />
                 <div>
                     <h2>{{ product.name }}</h2>
-                    <p>Catégorie: {{ product.expand.category.name }}</p>
+                    <p>Catégorie: {{ product.expand?.category?.name }}</p>
                     <p>Prix: {{ product.price }}€</p>
                     <p>Quantité disponible: {{ product.stock }}</p>
                 </div>
