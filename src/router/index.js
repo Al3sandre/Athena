@@ -17,7 +17,6 @@ import NotFoundView from '@/views/NotFoundView.vue';
 import ProductCreateView from '@/views/ProductCreateView.vue';
 import UserCreateView from '@/views/UserCreateView.vue';
 import UserEditView from '@/views/UserEditView.vue';
-import ProductEditView from '@/views/ProductEditView.vue';
 import StockArrivalsView from '@/views/StockArrivalsView.vue';
 import StockArrivalsCreateView from '@/views/StockArrivalsCreateView.vue';
 import StockArrivalsEditView from '@/views/StockArrivalsEditView.vue';

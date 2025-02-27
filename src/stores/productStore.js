@@ -1,11 +1,9 @@
 import { defineStore } from 'pinia';
-import PocketBase from 'pocketbase';
-
-const pb = new PocketBase('http://localhost:8090');
+import pb from '@/api/pocketbase';
 
 export const useProductStore = defineStore('productStore', {
   state: () => ({
-    products: []
+    products: [],
   }),
 
   actions: {
@@ -21,14 +19,12 @@ export const useProductStore = defineStore('productStore', {
     },
 
     // ✅ Récupérer un produit par ID depuis PocketBase
-    async fetchProductById(id) {
+    async fetchProductById(id, options = {}) {
       try {
-        const product = await pb.collection('products').getOne(id, {
-          expand: 'category' // Assurez-vous que la catégorie est incluse
-        });
+        const product = await pb.collection('products').getOne(id, options);
         return product;
       } catch (error) {
-        console.error('Erreur lors de la récupération du produit:', error);
+        console.error("Erreur lors de la récupération du produit :", error);
         throw error;
       }
     },

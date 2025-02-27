@@ -4,6 +4,7 @@
         <div v-if="!loading">
             <div v-if="product">
                 <div v-if="isAdmin">
+                    <!-- Champs d'édition pour les administrateurs -->
                     <div @dblclick="editField('name')">
                         <label for="name">Nom :</label>
                         <input v-if="editableField === 'name'" v-model="product.name" id="name" type="text"
@@ -55,12 +56,20 @@
                     <button @click="saveChanges">Enregistrer</button>
                 </div>
                 <div v-else>
+                    <!-- Affichage des détails du produit pour les utilisateurs -->
                     <p>Nom : {{ product.name }}</p>
                     <p>Description : {{ product.description }}</p>
                     <p>Prix : {{ product.price }}€</p>
                     <p>Stock : {{ product.stock }}</p>
                     <p>Catégorie : {{ getCategoryName(product.category) || 'Non spécifiée' }}</p>
                     <img :src="getImageUrl(product)" alt="Image du produit" />
+
+                    <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
+                    <div>
+                        <label for="quantity">Quantité :</label>
+                        <input v-model.number="quantity" id="quantity" type="number" min="1" />
+                        <button @click="addToCart">Ajouter au panier</button>
+                    </div>
                 </div>
                 <button @click="goBack">Retour à la liste des produits</button>
             </div>
@@ -76,12 +85,16 @@ import { useRouter, useRoute } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useUserStore } from '@/stores/userStore';
+import { useCartStore } from '@/stores/cartStore';
+import { useNotificationStore } from '@/stores/notifications';
 
 const router = useRouter();
 const route = useRoute();
 const productStore = useProductStore();
 const categoryStore = useCategoryStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
+const notificationStore = useNotificationStore();
 
 const product = ref(null);
 const categories = ref([]);
@@ -90,6 +103,7 @@ const editableField = ref(null);
 const imageFile = ref(null);
 const fileInput = ref(null);
 const loading = ref(true);
+const quantity = ref(1); // Quantité par défaut
 
 onMounted(async () => {
     try {
@@ -161,6 +175,19 @@ const getImageUrl = (product) => {
 const getCategoryName = (categoryId) => {
     const category = categories.value.find(cat => cat.id === categoryId);
     return category ? category.name : '';
+};
+
+const addToCart = () => {
+    if (quantity.value <= 0) {
+        notificationStore.notify({ type: 'error', message: 'La quantité doit être supérieure à 0.' });
+        return;
+    }
+    if (quantity.value > product.value.stock) {
+        notificationStore.notify({ type: 'error', message: 'Quantité demandée supérieure au stock disponible.' });
+        return;
+    }
+    cartStore.addToCart({ ...product.value, quantity: quantity.value });
+    notificationStore.notify({ type: 'success', message: 'Produit ajouté au panier.' });
 };
 </script>
 

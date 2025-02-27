@@ -32,10 +32,17 @@ export const useCartStore = defineStore('cartStore', {
       try {
         const productStore = useProductStore();
         const productIds = this.cart.map(item => item.product_id);
-        const products = await Promise.all(productIds.map(id => productStore.fetchProductById(id)));
+        const products = [];
+        const controller = new AbortController(); // Créez un contrôleur d'abort unique pour toutes les requêtes
+        for (const id of productIds) {
+          const product = await productStore.fetchProductById(id, { signal: controller.signal });
+          products.push(product);
+        }
         this.products = products;
       } catch (error) {
-        console.error("Erreur lors de la récupération des détails des produits :", error);
+        if (error.name !== 'AbortError') {
+          console.error("Erreur lors de la récupération des détails des produits :", error);
+        }
       }
     },
 
