@@ -18,6 +18,19 @@ export const useProductStore = defineStore('productStore', {
       }
     },
 
+    // ✅ Récupérer un produit par ID depuis PocketBase
+    async fetchProductById(productId) {
+      try {
+        const product = await pb.collection('products').getOne(productId, {
+          expand: 'category' // Assurez-vous que la catégorie est incluse
+        });
+        return product;
+      } catch (error) {
+        console.error('Erreur lors de la récupération du produit:', error);
+        throw error;
+      }
+    },
+
     // ✅ Ajouter un produit dans PocketBase
     async addProduct(productData) {
       try {
@@ -52,8 +65,10 @@ export const useProductStore = defineStore('productStore', {
         if (index !== -1) {
           this.products[index] = product; // Mettre à jour localement
         }
+        return product; // Retourner le produit mis à jour
       } catch (error) {
         console.error('Erreur lors de la modification du produit:', error);
+        throw error;
       }
     },
 
