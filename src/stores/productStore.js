@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
-import pb from '@/api/pocketbase'; // Import de PocketBase
+import PocketBase from 'pocketbase';
+
+const pb = new PocketBase('http://localhost:8090');
 
 export const useProductStore = defineStore('productStore', {
   state: () => ({
-    products: [] // On ne met plus les données mockées ici
+    products: []
   }),
 
   actions: {
@@ -19,9 +21,9 @@ export const useProductStore = defineStore('productStore', {
     },
 
     // ✅ Récupérer un produit par ID depuis PocketBase
-    async fetchProductById(productId) {
+    async fetchProductById(id) {
       try {
-        const product = await pb.collection('products').getOne(productId, {
+        const product = await pb.collection('products').getOne(id, {
           expand: 'category' // Assurez-vous que la catégorie est incluse
         });
         return product;
@@ -58,14 +60,14 @@ export const useProductStore = defineStore('productStore', {
     },
 
     // ✅ Modifier un produit dans PocketBase
-    async updateProduct(updatedProduct) {
+    async updateProduct(id, data) {
       try {
-        const product = await pb.collection('products').update(updatedProduct.id, updatedProduct);
-        const index = this.products.findIndex(p => p.id === updatedProduct.id);
+        const updatedProduct = await pb.collection('products').update(id, data);
+        const index = this.products.findIndex(p => p.id === id);
         if (index !== -1) {
-          this.products[index] = product; // Mettre à jour localement
+          this.products[index] = updatedProduct; // Mettre à jour localement
         }
-        return product; // Retourner le produit mis à jour
+        return updatedProduct; // Retourner le produit mis à jour
       } catch (error) {
         console.error('Erreur lors de la modification du produit:', error);
         throw error;
@@ -74,10 +76,10 @@ export const useProductStore = defineStore('productStore', {
 
     // ✅ Générer l'URL de l'image
     getImageUrl(product) {
-      if (product) {
-        return `http://127.0.0.1:8090/api/files/${product.collectionId}/${product.id}/${product.image}`;
+      if (product.image) {
+        return pb.files.getURL(product, product.image);
       }
-      return 'https://www.mon-site-bug.fr/uploads/products/default-product.png';
+      return 'default-image-url'; // Remplacez par l'URL de l'image par défaut
     }
   }
 });

@@ -122,7 +122,7 @@ const triggerFileInput = () => {
 
 const selectCategory = (categoryId) => {
     product.value.category = categoryId;
-    editableField.value = null; // Fermer l'édition après la sélection
+    saveField();
 };
 
 const saveChanges = async () => {
@@ -137,9 +137,9 @@ const saveChanges = async () => {
             formData.append('stock', product.value.stock);
             formData.append('category', product.value.category);
             formData.append('image', imageFile.value);
-            updatedProduct = await productStore.updateProduct(formData);
+            updatedProduct = await productStore.updateProduct(product.value.id, formData);
         } else {
-            updatedProduct = await productStore.updateProduct(product.value);
+            updatedProduct = await productStore.updateProduct(product.value.id, product.value);
         }
         product.value = updatedProduct; // Mettre à jour l'état local du produit
         alert('Modifications enregistrées avec succès');
