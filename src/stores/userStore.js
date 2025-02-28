@@ -94,5 +94,16 @@ export const useUserStore = defineStore('userStore', {
         return null;
       }
     },
-  }
+    // ✅ Récupérer tous les utilisateurs
+    async fetchAllUsers() {
+      try {
+        const response = await pb.collection('users').getFullList();
+        this.users = response;
+        return response;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des utilisateurs:', error);
+        return [];
+      }
+    }
+  },
 });

@@ -21,7 +21,7 @@ export const useOrderStore = defineStore('orderStore', {
         const userStore = useUserStore();
         const userRole = userStore.getRole();
         const userId = userStore.getUserId();
-        
+
         let filter = '';
         if (userRole === 'shop') {
           filter = `user_id='${userId}'`;
@@ -67,7 +67,16 @@ export const useOrderStore = defineStore('orderStore', {
         console.error('Erreur lors de la récupération de la commande:', error);
       }
     },
+    // ✅ Mettre à jour une commande
+    async updateOrder(orderId, data) {
+      try {
+        const response = await pb.collection('orders').update(orderId, data);
+        return response;
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de la commande:', error);
+        throw error;
+      }
+    },
 
-    // Autres actions existantes...
   }
 });

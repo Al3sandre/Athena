@@ -1,3 +1,4 @@
+<!-- TODO Idée de developement -> Affichage et gestion en mode Kanban (type trello) -->
 <template>
     <div>
         <h1>Liste des Commandes</h1>
@@ -9,6 +10,11 @@
                         <router-link :to="{ name: 'OrderDetail', params: { id: order.id } }">
                             Commande #{{ order.id }} - {{ order.status }}
                         </router-link>
+                        <p>Utilisateur : {{ getUserName(order.user_id) }}</p>
+                        <p>Date : {{ new Date(order.created).toLocaleString() }}</p>
+                        <select v-model="order.status" @change="updateOrderStatus(order)">
+                            <option v-for="status in orderStatuses" :key="status" :value="status">{{ status }}</option>
+                        </select>
                     </li>
                 </ul>
             </div>
@@ -33,7 +39,7 @@
 <script setup>
 import { useOrderStore } from '@/stores/orderStore';
 import { useUserStore } from '@/stores/userStore';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const orderStore = useOrderStore();
 const userStore = useUserStore();
@@ -67,6 +73,11 @@ const fetchOrders = (page = 1) => {
     }
 };
 
+const updateOrderStatus = async (order) => {
+    await orderStore.updateOrder(order.id, { status: order.status });
+    fetchOrders(pagination.value.page);
+};
+
 const prevPage = () => {
     if (pagination.value.page > 1) {
         fetchOrders(pagination.value.page - 1);
@@ -79,7 +90,21 @@ const nextPage = () => {
     }
 };
 
-onMounted(() => {
+const userNames = ref({});
+
+const fetchUserNames = async () => {
+    const users = await userStore.fetchAllUsers();
+    users.forEach(user => {
+        userNames.value[user.id] = user.name;
+    });
+};
+
+const getUserName = (userId) => {
+    return userNames.value[userId] || 'Utilisateur inconnu';
+};
+
+onMounted(async () => {
+    await fetchUserNames();
     fetchOrders();
 });
 </script>

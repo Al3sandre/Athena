@@ -8,8 +8,6 @@ import ProductDetailView from '@/views/ProductDetailView.vue';
 import OrderListView from '@/views/OrderListView.vue';
 import OrderDetailView from '@/views/OrderDetailView.vue';
 import CartView from '@/views/CartView.vue';
-import InvoiceListView from '@/views/InvoiceListView.vue';
-import InvoiceDetailView from '@/views/InvoiceDetailView.vue';
 import UserListView from '@/views/UserListView.vue';
 import ProfileView from '@/views/ProfileView.vue';
 import LoginView from '@/views/LoginView.vue';
@@ -32,8 +30,6 @@ const routes = [
   { path: '/stock-arrivals', component: StockArrivalsView, name: 'stock-arrivals', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/stock-arrivals/create', component: StockArrivalsCreateView, name: 'stock-arrivals-create', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/stock-arrivals/edit/:id', component: StockArrivalsEditView, name: 'stock-arrivals-edit', meta: { requiresAuth: true, roles: ['admin'] } },
-  { path: '/invoices', component: InvoiceListView, name: 'Invoices', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
-  { path: '/invoice/:id', component: InvoiceDetailView, name: 'InvoiceDetail', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/users', component: UserListView, name: 'Users', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/user/create', component: UserCreateView, name: 'Users-create', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/user/edit/:id', component: UserEditView, name: 'User-edit', meta: { requiresAuth: true, roles: ['admin'] } },
