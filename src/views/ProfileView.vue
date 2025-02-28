@@ -72,10 +72,12 @@ const saveChanges = async () => {
         }
         userStore.user = updatedUser; // Mettre à jour l'utilisateur dans le store
         user.value.avatar = updatedUser.avatar;
-        notificationStore.addNotification('Profil mis à jour avec succès.', 'success', 5000);
+        notificationStore.clearNotifications();
+        notificationStore.addNotification('Profil mis à jour avec succès.', 'success',);
     } catch (error) {
         console.error('Erreur lors de la mise à jour du profil:', error);
-        notificationStore.addNotification('Erreur lors de la mise à jour du profil.', 'error', 5000);
+        notificationStore.clearNotifications();
+        notificationStore.addNotification('Erreur lors de la mise à jour du profil.', 'error',);
     }
 };
 </script>
