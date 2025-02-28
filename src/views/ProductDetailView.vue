@@ -102,7 +102,7 @@ const editableField = ref(null);
 const imageFile = ref(null);
 const fileInput = ref(null);
 const loading = ref(true);
-const quantity = ref(1); // Quantité par défaut
+const quantity = ref(50); // Quantité par défaut
 
 onMounted(async () => {
     try {

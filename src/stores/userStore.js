@@ -3,7 +3,8 @@ import pb from '@/api/pocketbase';
 
 export const useUserStore = defineStore('userStore', {
   state: () => ({
-    user: pb.authStore.model // Récupérer l'utilisateur connecté depuis PocketBase
+    user: pb.authStore.model,
+    users: [] // Ajouter le tableau des utilisateurs
   }),
 
   actions: {
@@ -11,11 +12,11 @@ export const useUserStore = defineStore('userStore', {
     async login(email, password) {
       try {
         const authData = await pb.collection('users').authWithPassword(email, password);
-        this.user = authData.record; // Stocke l'utilisateur récupéré
-        return true; // Succès
+        this.user = authData.record;
+        return true;
       } catch (error) {
         console.error('Erreur de connexion:', error);
-        return false; // Échec
+        return false;
       }
     },
 
@@ -53,6 +54,7 @@ export const useUserStore = defineStore('userStore', {
     async createUser(userData) {
       try {
         const newUser = await pb.collection('users').create(userData);
+        this.users.push(newUser); // Ajouter le nouvel utilisateur à la liste
         return newUser;
       } catch (error) {
         console.error('Erreur lors de la création de l’utilisateur:', error);
@@ -63,13 +65,11 @@ export const useUserStore = defineStore('userStore', {
     // ✅ Mettre à jour un utilisateur
     async updateUser(id, data) {
       try {
-        let updatedUser;
-        if (data instanceof FormData) {
-          updatedUser = await pb.collection('users').update(id, data);
-        } else {
-          updatedUser = await pb.collection('users').update(id, data);
+        const updatedUser = await pb.collection('users').update(id, data);
+        const index = this.users.findIndex(user => user.id === id);
+        if (index !== -1) {
+          this.users[index] = updatedUser; // Mettre à jour l'utilisateur dans la liste
         }
-        this.user = updatedUser; // Mettre à jour l'utilisateur dans le store
         return updatedUser;
       } catch (error) {
         console.error('Erreur lors de la mise à jour de l’utilisateur:', error);
@@ -84,6 +84,7 @@ export const useUserStore = defineStore('userStore', {
       }
       return 'https://w7.pngwing.com/pngs/205/731/png-transparent-default-avatar-thumbnail.png'; // Remplacez par l'URL de l'avatar par défaut
     },
+
     // ✅ Récupérer les détails d'un utilisateur par ID
     async fetchUserById(userId) {
       try {
@@ -91,9 +92,10 @@ export const useUserStore = defineStore('userStore', {
         return response;
       } catch (error) {
         console.error('Erreur lors de la récupération de l’utilisateur:', error);
-        return null;
+        throw error;
       }
     },
+
     // ✅ Récupérer tous les utilisateurs
     async fetchAllUsers() {
       try {
@@ -105,5 +107,5 @@ export const useUserStore = defineStore('userStore', {
         return [];
       }
     }
-  },
+  }
 });

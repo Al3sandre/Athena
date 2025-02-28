@@ -18,7 +18,11 @@ import UserEditView from '@/views/UserEditView.vue';
 import StockArrivalsView from '@/views/StockArrivalsView.vue';
 import StockArrivalsCreateView from '@/views/StockArrivalsCreateView.vue';
 import StockArrivalsEditView from '@/views/StockArrivalsEditView.vue';
-// Définition des rôles autorisés par page
+import ArrivalManagementView from '@/views/ArrivalManagementView.vue';
+import NewArrivalView from '@/views/NewArrivalView.vue';
+import ArrivalDetailView from '@/views/ArrivalDetailView.vue';
+import InventoryManagementView from '@/views/InventoryManagementView.vue';
+
 const routes = [
   { path: '/', component: HomeView, name: 'Home', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/products', component: ProductListView, name: 'products', meta: { requiresAuth: true, roles: ['store', 'admin'] } },
@@ -34,8 +38,12 @@ const routes = [
   { path: '/user/create', component: UserCreateView, name: 'Users-create', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/user/edit/:id', component: UserEditView, name: 'User-edit', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/profile', component: ProfileView, name: 'Profile', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
+  { path: '/:pathMatch(.*)*', component: NotFoundView, name: 'NotFound' },
   { path: '/login', component: LoginView, name: 'Login' },
-  { path: '/:pathMatch(.*)*', component: NotFoundView, name: 'NotFound' }
+  { path: '/arrivals', component: ArrivalManagementView, name: 'ArrivalManagement', meta: { requiresAuth: true, roles: ['admin'] } },
+  { path: '/new-arrival', component: NewArrivalView, name: 'NewArrival', meta: { requiresAuth: true, roles: ['admin'] } },
+  { path: '/arrival/:id', component: ArrivalDetailView, name: 'ArrivalDetail', meta: { requiresAuth: true, roles: ['admin'] } },
+  { path: '/inventory', component: InventoryManagementView, name: 'InventoryManagement', meta: { requiresAuth: true, roles: ['admin'] } },
 ];
 
 const router = createRouter({
