@@ -1,4 +1,3 @@
-<!-- TODO! Probleme de recuperation de la category au chargement/ la maj fonctionne bien -->
 <template>
     <div>
         <h1>Détails du Produit</h1>
@@ -179,15 +178,15 @@ const getCategoryName = (categoryId) => {
 
 const addToCart = () => {
     if (quantity.value <= 0) {
-        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error');
+        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 5000); // Durée de 5 secondes
         return;
     }
     if (quantity.value > product.value.stock) {
-        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error');
+        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error', 5000); // Durée de 5 secondes
         return;
     }
-    cartStore.addToCart({ ...product.value, quantity: quantity.value });
-    notificationStore.addNotification('Produit ajouté au panier.', 'success');
+    cartStore.addToCart(product.value, quantity.value); // Passez la quantité spécifiée
+    notificationStore.addNotification('Produit ajouté au panier.', 'success', 5000); // Durée de 5 secondes
 };
 </script>
 

@@ -46,15 +46,15 @@ export const useCartStore = defineStore('cartStore', {
       }
     },
 
-    async addToCart(product) {
+    async addToCart(product, quantity) {
       const userStore = useUserStore();
       const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         const existingItem = this.cart.find(p => p.product_id === product.id);
         if (existingItem) {
-          existingItem.quantity++;
+          existingItem.quantity += quantity; // Ajoutez la quantité spécifiée
         } else {
-          this.cart.push({ product_id: product.id, quantity: 1 });
+          this.cart.push({ product_id: product.id, quantity });
         }
 
         await this.saveCart(userId);
