@@ -1,3 +1,4 @@
+<!-- TODO! Probleme de recuperation de la category au chargement/ la maj fonctionne bien -->
 <template>
     <div>
         <h1>Détails du Produit</h1>
@@ -63,13 +64,12 @@
                     <p>Stock : {{ product.stock }}</p>
                     <p>Catégorie : {{ getCategoryName(product.category) || 'Non spécifiée' }}</p>
                     <img :src="getImageUrl(product)" alt="Image du produit" />
-
-                    <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
-                    <div>
-                        <label for="quantity">Quantité :</label>
-                        <input v-model.number="quantity" id="quantity" type="number" min="1" />
-                        <button @click="addToCart">Ajouter au panier</button>
-                    </div>
+                </div>
+                <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
+                <div>
+                    <label for="quantity">Quantité :</label>
+                    <input v-model.number="quantity" id="quantity" type="number" min="1" />
+                    <button @click="addToCart">Ajouter au panier</button>
                 </div>
                 <button @click="goBack">Retour à la liste des produits</button>
             </div>
@@ -179,15 +179,15 @@ const getCategoryName = (categoryId) => {
 
 const addToCart = () => {
     if (quantity.value <= 0) {
-        notificationStore.notify({ type: 'error', message: 'La quantité doit être supérieure à 0.' });
+        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error');
         return;
     }
     if (quantity.value > product.value.stock) {
-        notificationStore.notify({ type: 'error', message: 'Quantité demandée supérieure au stock disponible.' });
+        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error');
         return;
     }
     cartStore.addToCart({ ...product.value, quantity: quantity.value });
-    notificationStore.notify({ type: 'success', message: 'Produit ajouté au panier.' });
+    notificationStore.addNotification('Produit ajouté au panier.', 'success');
 };
 </script>
 
