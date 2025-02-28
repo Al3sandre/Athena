@@ -39,6 +39,11 @@ export const useUserStore = defineStore('userStore', {
       return this.user ? this.user.role : null;
     },
 
+    // ✅ Récupérer l'ID de l'utilisateur
+    getUserId() {
+      return this.user ? this.user.id : null;
+    },
+
     // ✅ Vérifier si l'utilisateur est administrateur
     isAdmin() {
       return this.getRole() === 'admin';

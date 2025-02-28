@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import pb from '@/api/pocketbase';
 import { useProductStore } from '@/stores/productStore';
 import { useUserStore } from '@/stores/userStore';
-
+// TODO Probleme de supression dans la panier dans le widget bouton retirer du panier non fonctionnel
 export const useCartStore = defineStore('cartStore', {
   state: () => ({
     cart: [],
