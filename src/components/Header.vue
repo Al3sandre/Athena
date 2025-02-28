@@ -3,7 +3,6 @@
         <router-link v-if="user" to="/">Accueil</router-link>
         <router-link v-if="user" to="/products">Produits</router-link>
         <router-link v-if="user" to="/orders">Commandes</router-link>
-        <router-link v-if="user" to="/invoices">Factures</router-link>
         <router-link v-if="isAdmin" to="/users">Utilisateurs</router-link>
         <router-link v-if="user" to="/profile">Mon Profil</router-link>
         <router-link v-if="!user" to="/login">Connexion</router-link>

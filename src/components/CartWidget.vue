@@ -23,8 +23,8 @@ import { useUserStore } from '@/stores/userStore';
 
 const cartStore = useCartStore();
 const userStore = useUserStore();
-const cart = computed(() => cartStore.cart); // Utilisez computed pour rendre réactif
-const isLoading = computed(() => cartStore.isLoading); // Utilisez computed pour rendre réactif
+const cart = computed(() => cartStore.cart);
+const isLoading = computed(() => cartStore.isLoading);
 const isCartOpen = ref(false);
 const user = computed(() => userStore.user);
 
@@ -33,7 +33,8 @@ const toggleCart = () => {
 };
 
 const removeFromCart = (productId) => {
-    cartStore.removeFromCart(userStore.user.id, productId);
+    console.log('Retirer du panier:', productId); // Log de débogage
+    cartStore.removeFromCart(productId);
 };
 
 const getProductDetails = (productId) => {
