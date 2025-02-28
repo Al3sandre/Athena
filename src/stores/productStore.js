@@ -21,14 +21,16 @@ export const useProductStore = defineStore('productStore', {
     // ✅ Récupérer un produit par ID depuis PocketBase
     async fetchProductById(id, options = {}) {
       try {
-        const product = await pb.collection('products').getOne(id, options);
+        const product = await pb.collection('products').getOne(id, {
+          expand: 'category', // Assurez-vous que la catégorie est incluse
+          ...options
+        });
         return product;
       } catch (error) {
         console.error("Erreur lors de la récupération du produit :", error);
         throw error;
       }
     },
-
     // ✅ Ajouter un produit dans PocketBase
     async addProduct(productData) {
       try {
