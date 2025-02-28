@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia';
 import pb from '@/api/pocketbase';
 
-// Ce fichier définit un store Pinia pour gérer les utilisateurs, y compris la connexion, la déconnexion, la création d'utilisateurs et la récupération des rôles.
-
 export const useUserStore = defineStore('userStore', {
   state: () => ({
     user: pb.authStore.model // Récupérer l'utilisateur connecté depuis PocketBase
@@ -55,6 +53,31 @@ export const useUserStore = defineStore('userStore', {
         console.error('Erreur lors de la création de l’utilisateur:', error);
         throw error;
       }
+    },
+
+    // ✅ Mettre à jour un utilisateur
+    async updateUser(id, data) {
+      try {
+        let updatedUser;
+        if (data instanceof FormData) {
+          updatedUser = await pb.collection('users').update(id, data);
+        } else {
+          updatedUser = await pb.collection('users').update(id, data);
+        }
+        this.user = updatedUser; // Mettre à jour l'utilisateur dans le store
+        return updatedUser;
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de l’utilisateur:', error);
+        throw error;
+      }
+    },
+
+    // ✅ Générer l'URL de l'avatar
+    getImageUrl(user) {
+      if (user.avatar) {
+        return `http://127.0.0.1:8090/api/files/users/${user.id}/${user.avatar}`;
+      }
+      return 'https://w7.pngwing.com/pngs/205/731/png-transparent-default-avatar-thumbnail.png'; // Remplacez par l'URL de l'avatar par défaut
     }
   }
 });
