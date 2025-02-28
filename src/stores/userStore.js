@@ -83,6 +83,16 @@ export const useUserStore = defineStore('userStore', {
         return `http://127.0.0.1:8090/api/files/users/${user.id}/${user.avatar}`;
       }
       return 'https://w7.pngwing.com/pngs/205/731/png-transparent-default-avatar-thumbnail.png'; // Remplacez par l'URL de l'avatar par défaut
-    }
+    },
+    // ✅ Récupérer les détails d'un utilisateur par ID
+    async fetchUserById(userId) {
+      try {
+        const response = await pb.collection('users').getOne(userId);
+        return response;
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l’utilisateur:', error);
+        return null;
+      }
+    },
   }
 });
