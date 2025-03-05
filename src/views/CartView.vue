@@ -27,14 +27,15 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
+import { useOrderStore } from '@/stores/orderStore';
 
 const cartStore = useCartStore();
+const orderStore = useOrderStore();
 const cart = computed(() => cartStore.cart);
 const editingItem = ref(null);
 
 const getProductDetails = (productId) => {
     return cartStore.products.find(product => product.id === productId);
-
 };
 
 const updateQuantity = (productId, quantity) => {
@@ -46,8 +47,7 @@ const removeFromCart = (productId) => {
 };
 
 const placeOrder = () => {
-    // Logique pour passer la commande
-    console.log('Commande passée:', cart.value);
+    orderStore.placeOrder();
 };
 
 const isEditing = (productId) => {

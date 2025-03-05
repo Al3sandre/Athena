@@ -1,3 +1,4 @@
+<!-- TODO Revoir la facon de gere les arrivage , recherche produit-->
 <template>
     <div>
         <h1>Nouvel Arrivage</h1>

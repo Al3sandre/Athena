@@ -1,3 +1,4 @@
+<!-- TODO revoir le fonctionnement de l'inventaire penser a la pagination -->
 <template>
     <div>
         <h1>Gestion de l'Inventaire</h1>
