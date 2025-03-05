@@ -10,9 +10,7 @@ export const useArrivalStore = defineStore('arrivalStore', {
     actions: {
         async fetchArrivals() {
             try {
-                console.log('Fetching all arrivals...');
                 const response = await pb.collection('arrivals').getFullList();
-                console.log('Fetched arrivals:', response);
                 this.arrivals = response;
             } catch (error) {
                 console.error('Erreur lors de la récupération des arrivages:', error);
@@ -21,27 +19,22 @@ export const useArrivalStore = defineStore('arrivalStore', {
 
         async fetchArrivalById(arrivalId) {
             try {
-                console.log(`Fetching arrival with ID: ${arrivalId}`);
                 const response = await pb.collection('arrivals').getOne(arrivalId, {
                     expand: 'arrival_product'
                 });
-                console.log('Fetched arrival:', response);
                 if (!response.arrival_product || !Array.isArray(response.arrival_product)) {
                     throw new Error('Les produits de l\'arrivage ne sont pas disponibles.');
                 }
                 const arrivalProducts = response.arrival_product;
-                console.log('Arrival products:', arrivalProducts);
                 const productStore = useProductStore();
                 const products = await Promise.all(arrivalProducts.map(async (arrivalProductId) => {
                     try {
                         const arrivalProduct = await pb.collection('arrival_products').getOne(arrivalProductId);
                         const productId = arrivalProduct.product;
-                        console.log(`Fetching product with ID: ${productId}`);
                         const product = await productStore.fetchProductById(productId);
                         if (!product) {
                             throw new Error(`Produit avec l'ID ${productId} non trouvé.`);
                         }
-                        console.log('Fetched product:', product);
                         return {
                             ...product,
                             quantity: arrivalProduct.quantity
@@ -60,18 +53,33 @@ export const useArrivalStore = defineStore('arrivalStore', {
             }
         },
 
-        async addArrival(data) {
+        async addArrival(arrivalData) {
             try {
-                console.log('Adding new arrival:', data);
-                const response = await pb.collection('arrivals').create({
-                    ...data,
-                    status: 'en cours' // Définir le statut par défaut à "en cours"
-                });
-                console.log('Added arrival:', response);
+                const response = await pb.collection('arrivals').create(arrivalData);
                 this.arrivals.push(response);
                 return response;
             } catch (error) {
                 console.error('Erreur lors de l’ajout de l’arrivage:', error);
+                throw error;
+            }
+        },
+
+        async addArrivalProduct(arrivalProductData) {
+            try {
+                const response = await pb.collection('arrival_products').create(arrivalProductData);
+                return response;
+            } catch (error) {
+                console.error('Erreur lors de l’ajout du produit à l’arrivage:', error);
+                throw error;
+            }
+        },
+
+        async updateArrival(arrivalId, arrivalData) {
+            try {
+                const response = await pb.collection('arrivals').update(arrivalId, arrivalData);
+                return response;
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour de l’arrivage:', error);
                 throw error;
             }
         },

@@ -178,15 +178,15 @@ const getCategoryName = (categoryId) => {
 
 const addToCart = () => {
     if (quantity.value <= 0) {
-        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 5000); // Durée de 5 secondes
+        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 900); // Durée de 5 secondes
         return;
     }
     if (quantity.value > product.value.stock) {
-        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error', 5000); // Durée de 5 secondes
+        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error', 900); // Durée de 5 secondes
         return;
     }
     cartStore.addToCart(product.value, quantity.value); // Passez la quantité spécifiée
-    notificationStore.addNotification('Produit ajouté au panier.', 'success', 5000); // Durée de 5 secondes
+    notificationStore.addNotification('Produit ajouté au panier.', 'success', 900); // Durée de 5 secondes
 };
 </script>
 

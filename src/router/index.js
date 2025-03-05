@@ -15,9 +15,6 @@ import NotFoundView from '@/views/NotFoundView.vue';
 import ProductCreateView from '@/views/ProductCreateView.vue';
 import UserCreateView from '@/views/UserCreateView.vue';
 import UserEditView from '@/views/UserEditView.vue';
-import StockArrivalsView from '@/views/StockArrivalsView.vue';
-import StockArrivalsCreateView from '@/views/StockArrivalsCreateView.vue';
-import StockArrivalsEditView from '@/views/StockArrivalsEditView.vue';
 import ArrivalManagementView from '@/views/ArrivalManagementView.vue';
 import NewArrivalView from '@/views/NewArrivalView.vue';
 import ArrivalDetailView from '@/views/ArrivalDetailView.vue';
@@ -31,9 +28,6 @@ const routes = [
   { path: '/orders', component: OrderListView, name: 'Orders', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/order/:id', component: OrderDetailView, name: 'OrderDetail', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
   { path: '/cart', component: CartView, name: 'CartPage', meta: { requiresAuth: true, roles: ['admin', 'store'] } },
-  { path: '/stock-arrivals', component: StockArrivalsView, name: 'stock-arrivals', meta: { requiresAuth: true, roles: ['admin'] } },
-  { path: '/stock-arrivals/create', component: StockArrivalsCreateView, name: 'stock-arrivals-create', meta: { requiresAuth: true, roles: ['admin'] } },
-  { path: '/stock-arrivals/edit/:id', component: StockArrivalsEditView, name: 'stock-arrivals-edit', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/users', component: UserListView, name: 'Users', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/user/create', component: UserCreateView, name: 'Users-create', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/user/edit/:id', component: UserEditView, name: 'User-edit', meta: { requiresAuth: true, roles: ['admin'] } },
