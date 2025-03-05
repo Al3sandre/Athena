@@ -20,9 +20,17 @@ export const useCartStore = defineStore('cartStore', {
         if (userCart) {
           this.cart = userCart.items;
           await this.fetchProductDetails();
+        } else {
+          // Si le panier n'existe pas, créez un nouveau panier pour l'utilisateur
+          await this.saveCart(userId);
         }
       } catch (error) {
-        console.error("Erreur lors de la récupération du panier :", error);
+        if (error.status === 404) {
+          // Si le panier n'existe pas, créez un nouveau panier pour l'utilisateur
+          await this.saveCart(userId);
+        } else {
+          console.error("Erreur lors de la récupération du panier :", error);
+        }
       } finally {
         this.isLoading = false;
       }
@@ -97,7 +105,12 @@ export const useCartStore = defineStore('cartStore', {
           await pb.collection('carts').create({ user_id: userId, items: this.cart });
         }
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde du panier :", error);
+        if (error.status === 404) {
+          // Si le panier n'existe pas, créez un nouveau panier pour l'utilisateur
+          await pb.collection('carts').create({ user_id: userId, items: this.cart });
+        } else {
+          console.error("Erreur lors de la sauvegarde du panier :", error);
+        }
       }
     },
 
