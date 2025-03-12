@@ -1,5 +1,5 @@
 <template>
-    <div id="app">
+    <div id="app" class="min-h-screen bg-gray-100">
         <Header />
         <CartWidget />
         <router-view></router-view>
@@ -13,28 +13,6 @@ import Notification from '@/components/NotificationBanner.vue';
 import CartWidget from '@/components/CartWidget.vue';
 </script>
 
-
 <style>
-nav {
-    background: #333;
-    padding: 10px;
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    margin-right: 10px;
-}
-
-button {
-    background: red;
-    color: white;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-}
-
-button:hover {
-    background: darkred;
-}
+/* Vous pouvez supprimer les styles CSS personnalisés si vous utilisez Tailwind CSS */
 </style>

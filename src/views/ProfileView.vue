@@ -1,27 +1,33 @@
 <template>
-    <div>
-        <h1>Mon Profil</h1>
-        <p>Bienvenue sur votre espace utilisateur.</p>
-        <div v-if="user">
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Mon Profil</h1>
+        <p class="mb-4">Bienvenue sur votre espace utilisateur.</p>
+        <div v-if="user" class="space-y-4">
             <div>
-                <label for="email">Email :</label>
-                <input v-model="user.email" id="email" type="email" />
+                <label for="email" class="block mb-2">Email :</label>
+                <input v-model="user.email" id="email" type="email"
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="name">Nom :</label>
-                <input v-model="user.name" id="name" type="text" />
+                <label for="name" class="block mb-2">Nom :</label>
+                <input v-model="user.name" id="name" type="text"
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="role">Rôle :</label>
-                <input v-model="user.role" id="role" type="text" disabled />
+                <label for="role" class="block mb-2">Rôle :</label>
+                <input v-model="user.role" id="role" type="text" disabled
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="avatar">Avatar :</label>
+                <label for="avatar" class="block mb-2">Avatar :</label>
                 <img :src="userStore.getImageUrl(user)" alt="Avatar de l'utilisateur" @click="triggerFileInput"
-                    style="cursor: pointer;" />
-                <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none;" />
+                    class="cursor-pointer w-32 h-32 object-cover rounded-full mb-4" />
+                <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
             </div>
-            <button @click="saveChanges">Enregistrer</button>
+            <button @click="saveChanges"
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+                Enregistrer
+            </button>
         </div>
         <p v-else>Chargement...</p>
     </div>
@@ -64,6 +70,7 @@ const saveChanges = async () => {
 
             // Ajout de logs pour déboguer
             for (let pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
             }
 
             updatedUser = await userStore.updateUser(user.value.id, formData);
@@ -73,11 +80,11 @@ const saveChanges = async () => {
         userStore.user = updatedUser; // Mettre à jour l'utilisateur dans le store
         user.value.avatar = updatedUser.avatar;
         notificationStore.clearNotifications();
-        notificationStore.addNotification('Profil mis à jour avec succès.', 'success',);
+        notificationStore.addNotification('Profil mis à jour avec succès.', 'success', 5000);
     } catch (error) {
         console.error('Erreur lors de la mise à jour du profil:', error);
         notificationStore.clearNotifications();
-        notificationStore.addNotification('Erreur lors de la mise à jour du profil.', 'error',);
+        notificationStore.addNotification('Erreur lors de la mise à jour du profil.', 'error', 5000);
     }
 };
 </script>

@@ -1,19 +1,29 @@
 <template>
-    <div>
-        <h1>Gestion des Arrivages</h1>
-        <button @click="goToNewArrival">Nouvel Arrivage</button>
-        <h2>Historique des Arrivages</h2>
-        <ul>
-            <li v-for="arrival in paginatedArrivals" :key="arrival.id">
-                <router-link :to="{ name: 'ArrivalDetail', params: { id: arrival.id } }">
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Gestion des Arrivages</h1>
+        <button @click="goToNewArrival"
+            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200 mb-4">
+            Nouvel Arrivage
+        </button>
+        <h2 class="text-xl font-semibold mb-2">Historique des Arrivages</h2>
+        <ul class="space-y-2">
+            <li v-for="arrival in paginatedArrivals" :key="arrival.id" class="bg-white p-4 rounded shadow-md">
+                <router-link :to="{ name: 'ArrivalDetail', params: { id: arrival.id } }"
+                    class="text-blue-500 hover:text-blue-700">
                     ID : {{ arrival.id }} - Montant : {{ arrival.amount }} - Date : {{ formatDate(arrival.created) }}
                 </router-link>
             </li>
         </ul>
-        <div class="pagination">
-            <button @click="prevPage" :disabled="currentPage === 1">Précédent</button>
+        <div class="pagination mt-4 flex items-center justify-between">
+            <button @click="prevPage" :disabled="currentPage === 1"
+                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-200 disabled:opacity-50">
+                Précédent
+            </button>
             <span>Page {{ currentPage }} sur {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages">Suivant</button>
+            <button @click="nextPage" :disabled="currentPage === totalPages"
+                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-200 disabled:opacity-50">
+                Suivant
+            </button>
         </div>
     </div>
 </template>

@@ -1,26 +1,33 @@
 <template>
-    <div>
-        <h1>Détails de l'Arrivage</h1>
-        <div v-if="arrival">
-            <p>ID : {{ arrival.id }}</p>
-            <p>Montant : {{ arrival.amount }}</p>
-            <p>Date : {{ formatDate(arrival.created) }}</p>
-            <p>Status : {{ arrival.status }}</p>
-            <ul>
-                <li v-for="product in arrival.products" :key="product.id">
-                    <img :src="getImageUrl(product)" alt="Image du produit" width="50" height="50" />
-                    <span>{{ product.name }}</span>
-                    <span>Quantité : </span>
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Détails de l'Arrivage</h1>
+        <div v-if="arrival" class="bg-white p-4 rounded shadow-md">
+            <p><strong>ID :</strong> {{ arrival.id }}</p>
+            <p><strong>Montant :</strong> {{ arrival.amount }}</p>
+            <p><strong>Date :</strong> {{ formatDate(arrival.created) }}</p>
+            <p><strong>Status :</strong> {{ arrival.status }}</p>
+            <ul class="mt-4 space-y-2">
+                <li v-for="product in arrival.products" :key="product.id" class="flex items-center space-x-4">
+                    <img :src="getImageUrl(product)" alt="Image du produit" class="w-12 h-12 object-cover rounded" />
+                    <span class="font-semibold">{{ product.name }}</span>
+                    <span>Quantité :</span>
                     <span v-if="editableProductId === product.id">
-                        <input v-model.number="product.quantity" @blur="saveQuantity(product)" />
+                        <input v-model.number="product.quantity" @blur="saveQuantity(product)"
+                            class="border rounded px-2 py-1" />
                     </span>
-                    <span v-else @dblclick="editQuantity(product)">{{ product.quantity }}</span>
+                    <span v-else @dblclick="editQuantity(product)" class="cursor-pointer">{{ product.quantity }}</span>
                     <span>Coût unitaire : {{ product.price }}€</span>
                 </li>
             </ul>
-            <p>Montant total de l'arrivage : {{ totalAmount }}€</p>
-            <button @click="toggleStatus">{{ arrival.status === 'en cours' ? 'Réceptionner' : 'Revenir à en cours'
-            }}</button>
+            <p class="mt-4"><strong>Montant total de l'arrivage :</strong> {{ totalAmount }}€</p>
+            <button @click="toggleStatus"
+                class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+                {{ arrival.status === 'en cours' ? 'Réceptionner' : 'Revenir à en cours' }}
+            </button>
+            <router-link to="/arrivals"
+                class="mt-4 inline-block bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-200">
+                Retour aux Arrivages
+            </router-link>
         </div>
         <div v-else>
             <p>Chargement des détails de l'arrivage...</p>
@@ -81,3 +88,7 @@ onMounted(async () => {
     }
 });
 </script>
+
+<style scoped>
+/* Vous pouvez supprimer les styles existants car nous utilisons Tailwind CSS */
+</style>

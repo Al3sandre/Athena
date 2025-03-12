@@ -1,42 +1,54 @@
 <template>
-    <div>
-        <h1>Création de Produit</h1>
-        <form @submit.prevent="handleSubmit">
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Création de Produit</h1>
+        <form @submit.prevent="handleSubmit" class="space-y-4">
             <div>
-                <label for="name">Nom du produit:</label>
-                <input v-model="name" type="text" id="name" required />
+                <label for="name" class="block mb-2">Nom du produit:</label>
+                <input v-model="name" type="text" id="name" required
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="description">Description:</label>
-                <textarea v-model="description" id="description" required></textarea>
+                <label for="description" class="block mb-2">Description:</label>
+                <textarea v-model="description" id="description" required
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div>
-                <label for="price">Prix:</label>
-                <input v-model="price" type="number" id="price" min="0" max="100" step="0.01" required />
+                <label for="price" class="block mb-2">Prix:</label>
+                <input v-model="price" type="number" id="price" min="0" max="100" step="0.01" required
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="stock">Stock:</label>
-                <input v-model="stock" type="number" id="stock" />
+                <label for="stock" class="block mb-2">Stock:</label>
+                <input v-model="stock" type="number" id="stock"
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="category-search">Rechercher une catégorie:</label>
+                <label for="category-search" class="block mb-2">Rechercher une catégorie:</label>
                 <input v-model="categorySearchQuery" id="category-search" type="text" @input="searchCategories"
-                    placeholder="Rechercher une catégorie..." />
-                <ul v-if="categorySearchQuery.length > 0 && filteredCategories.length > 0" class="search-results">
-                    <li v-for="cat in filteredCategories" :key="cat.id" @dblclick="selectCategory(cat)">
+                    placeholder="Rechercher une catégorie..."
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <ul v-if="categorySearchQuery.length > 0 && filteredCategories.length > 0" class="search-results mt-2">
+                    <li v-for="cat in filteredCategories" :key="cat.id" @dblclick="selectCategory(cat)"
+                        class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                         {{ cat.name }}
                     </li>
                 </ul>
-                <div v-if="categorySearchQuery.length > 0 && filteredCategories.length === 0">
-                    <button type="button" @click="createCategory">Créer la catégorie "{{ categorySearchQuery
-                    }}"</button>
+                <div v-if="categorySearchQuery.length > 0 && filteredCategories.length === 0" class="mt-2">
+                    <button type="button" @click="createCategory"
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200">
+                        Créer la catégorie "{{ categorySearchQuery }}"
+                    </button>
                 </div>
             </div>
             <div>
-                <label for="image">Image:</label>
-                <input type="file" @change="handleFileUpload" id="image" />
+                <label for="image" class="block mb-2">Image:</label>
+                <input type="file" @change="handleFileUpload" id="image"
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
-            <button type="submit">Créer</button>
+            <button type="submit"
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+                Créer
+            </button>
         </form>
     </div>
 </template>

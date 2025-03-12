@@ -1,12 +1,18 @@
 <template>
-  <div>
-    <h1>Connexion</h1>
-    <form @submit.prevent="handleLogin">
-      <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Mot de passe" required />
-      <button type="submit">Se connecter</button>
-    </form>
-    <p v-if="error" style="color: red;">{{ error }}</p>
+  <div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+      <h1 class="text-2xl font-bold mb-6 text-center">Connexion</h1>
+      <form @submit.prevent="handleLogin" class="space-y-4">
+        <input v-model="email" type="email" placeholder="Email" required
+          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <input v-model="password" type="password" placeholder="Mot de passe" required
+          class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button type="submit"
+          class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-200">Se
+          connecter</button>
+      </form>
+      <p v-if="error" class="mt-4 text-red-500 text-center">{{ error }}</p>
+    </div>
   </div>
 </template>
 
@@ -43,22 +49,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-input {
-  display: block;
-  margin: 10px 0;
-  padding: 8px;
-  width: 200px;
-}
-
-button {
-  padding: 10px;
-  background: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #0056b3;
-}
+/* Vous pouvez supprimer les styles existants car nous utilisons Tailwind CSS */
 </style>

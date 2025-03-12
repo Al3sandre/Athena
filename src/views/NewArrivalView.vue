@@ -1,36 +1,45 @@
 <template>
-    <div>
-        <h1>Nouvel Arrivage</h1>
-        <form @submit.prevent="confirmArrival">
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Nouvel Arrivage</h1>
+        <form @submit.prevent="confirmArrival" class="space-y-4">
             <div>
-                <label for="product-search">Rechercher un produit :</label>
+                <label for="product-search" class="block mb-2">Rechercher un produit :</label>
                 <input v-model="searchQuery" id="product-search" type="text" @input="searchProducts"
-                    placeholder="Rechercher un produit..." />
-                <ul v-if="searchQuery.length > 0 && filteredProducts.length > 0" class="search-results">
-                    <li v-for="product in filteredProducts" :key="product.id" @dblclick="selectProduct(product)">
+                    placeholder="Rechercher un produit..."
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <ul v-if="searchQuery.length > 0 && filteredProducts.length > 0" class="search-results mt-2">
+                    <li v-for="product in filteredProducts" :key="product.id" @dblclick="selectProduct(product)"
+                        class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                         {{ product.name }}
                     </li>
                 </ul>
             </div>
             <div>
-                <label for="quantity">Quantité :</label>
+                <label for="quantity" class="block mb-2">Quantité :</label>
                 <input v-model.number="quantity" id="quantity" type="number" min="1" required
-                    @keyup.enter="addProductToArrival" />
+                    @keyup.enter="addProductToArrival"
+                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
-            <button type="button" @click="addProductToArrival">Ajouter au Arrivage</button>
-            <ul>
-                <li v-for="item in arrivalItems" :key="item.product_id">
-                    <span @dblclick="enableEditing(item.product_id)">
+            <button type="button" @click="addProductToArrival"
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+                Ajouter au Arrivage
+            </button>
+            <ul class="mt-4 space-y-2">
+                <li v-for="item in arrivalItems" :key="item.product_id" class="flex items-center space-x-4">
+                    <span @dblclick="enableEditing(item.product_id)" class="cursor-pointer">
                         {{ getProductDetails(item.product_id).name }} -
                         <span v-if="!isEditing(item.product_id)">
                             {{ item.quantity }}x
                         </span>
                         <input v-else type="number" v-model.number="item.quantity"
-                            @blur="disableEditing(item.product_id)" min="1" />
+                            @blur="disableEditing(item.product_id)" min="1" class="border rounded px-2 py-1 w-16" />
                     </span>
                 </li>
             </ul>
-            <button type="submit">Confirmer l'Arrivage</button>
+            <button type="submit"
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200">
+                Confirmer l'Arrivage
+            </button>
         </form>
     </div>
 </template>

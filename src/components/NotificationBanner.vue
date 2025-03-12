@@ -1,6 +1,6 @@
 <template>
-    <div class="notifications">
-        <div v-for="notification in notifications" :key="notification.id" :class="`notification ${notification.type}`">
+    <div class="fixed top-10 right-10 z-50 space-y-4">
+        <div v-for="notification in notifications" :key="notification.id" :class="notificationClass(notification.type)">
             {{ notification.message }}
         </div>
     </div>
@@ -12,29 +12,19 @@ import { computed } from 'vue';
 
 const notificationStore = useNotificationStore();
 const notifications = computed(() => notificationStore.notifications);
+
+const notificationClass = (type) => {
+    switch (type) {
+        case 'info':
+            return 'bg-blue-500 text-white p-4 rounded shadow-md';
+        case 'error':
+            return 'bg-red-500 text-white p-4 rounded shadow-md';
+        default:
+            return 'bg-gray-800 text-white p-4 rounded shadow-md';
+    }
+};
 </script>
 
 <style scoped>
-.notifications {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-}
-
-.notification {
-    background: #333;
-    color: white;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-}
-
-.notification.info {
-    background: #007bff;
-}
-
-.notification.error {
-    background: #dc3545;
-}
+/* Vous pouvez supprimer les styles existants car nous utilisons Tailwind CSS */
 </style>

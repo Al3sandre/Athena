@@ -1,14 +1,19 @@
 <template>
-    <nav>
-        <router-link v-if="user" to="/">Accueil</router-link>
-        <router-link v-if="user" to="/products">Produits</router-link>
-        <router-link v-if="user" to="/orders">Commandes</router-link>
-        <router-link v-if="isAdmin" to="/arrivals">Arrivages</router-link>
-        <router-link v-if="isAdmin" to="/inventory">Inventaires</router-link>
-        <router-link v-if="user" to="/profile">Mon Profil</router-link>
-        <router-link v-if="isAdmin" to="/users">Utilisateurs</router-link>
-        <router-link v-if="!user" to="/login">Connexion</router-link>
-        <button v-if="user" @click="logout">Déconnexion ({{ user.name }})</button>
+    <nav class="bg-gray-800 p-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <router-link v-if="user" to="/" class="text-white hover:text-gray-300">Accueil</router-link>
+            <router-link v-if="user" to="/products" class="text-white hover:text-gray-300">Produits</router-link>
+            <router-link v-if="user" to="/orders" class="text-white hover:text-gray-300">Commandes</router-link>
+            <router-link v-if="isAdmin" to="/arrivals" class="text-white hover:text-gray-300">Arrivages</router-link>
+            <router-link v-if="isAdmin" to="/inventory" class="text-white hover:text-gray-300">Inventaires</router-link>
+            <router-link v-if="user" to="/profile" class="text-white hover:text-gray-300">Mon Profil</router-link>
+            <router-link v-if="isAdmin" to="/users" class="text-white hover:text-gray-300">Utilisateurs</router-link>
+            <router-link v-if="!user" to="/login" class="text-white hover:text-gray-300">Connexion</router-link>
+        </div>
+        <button v-if="user" @click="logout"
+            class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200">
+            Déconnexion ({{ user.name }})
+        </button>
     </nav>
 </template>
 
@@ -38,28 +43,5 @@ watch(user, (newUser) => {
 </script>
 
 <style scoped>
-nav {
-    background: #333;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    margin-right: 10px;
-}
-
-button {
-    background: red;
-    color: white;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-}
-
-button:hover {
-    background: darkred;
-}
+/* Vous pouvez supprimer les styles existants car nous utilisons Tailwind CSS */
 </style>

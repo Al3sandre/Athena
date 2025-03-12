@@ -1,17 +1,23 @@
 <template>
-    <div v-if="user" class="cart-widget">
-        <button @click="toggleCart">Panier ({{ cart.length }})</button>
-        <div v-if="isCartOpen" class="cart-dropdown">
+    <div v-if="user" class="relative">
+        <button @click="toggleCart"
+            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+            Panier ({{ cart.length }})
+        </button>
+        <div v-if="isCartOpen"
+            class="absolute top-full right-0 bg-white border border-gray-300 p-4 w-64 mt-2 rounded shadow-lg">
             <ul v-if="!isLoading">
-                <li v-for="item in cart" :key="item.product_id">
+                <li v-for="item in cart" :key="item.product_id" class="flex justify-between items-center mb-2">
                     <div v-if="getProductDetails(item.product_id)">
                         {{ getProductDetails(item.product_id).name }} - {{ item.quantity }}x
-                        <button @click="removeFromCart(item.product_id)">Retirer</button>
+                        <button @click="removeFromCart(item.product_id)"
+                            class="text-red-500 hover:text-red-700 transition duration-200">Retirer</button>
                     </div>
                 </li>
             </ul>
             <div v-else>Chargement...</div>
-            <router-link to="/cart">Voir le panier</router-link>
+            <router-link to="/cart" class="text-blue-500 hover:text-blue-700 transition duration-200">Voir le
+                panier</router-link>
         </div>
     </div>
 </template>
@@ -57,29 +63,5 @@ watch(user, async (newUser) => {
 </script>
 
 <style scoped>
-.cart-widget {
-    position: relative;
-}
-
-.cart-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    width: 200px;
-}
-
-.cart-dropdown ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.cart-dropdown li {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-}
+/* Vous pouvez supprimer les styles existants car nous utilisons Tailwind CSS */
 </style>

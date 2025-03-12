@@ -1,31 +1,38 @@
 <template>
-    <div>
-        <h1>Détails de la Commande</h1>
-        <div v-if="order">
-            <p>ID de la commande : {{ order.id }}</p>
-            <p>Utilisateur : {{ userName }}</p>
-            <p>Produits :</p>
-            <ul>
-                <li v-for="product in products" :key="product.id">
-                    <router-link :to="{ name: 'ProductDetail', params: { id: product.id } }">
-                        <img :src="product.image" alt="Image du produit" width="50" height="50">
-                        <span>{{ product.name }}</span>
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Détails de la Commande</h1>
+        <div v-if="order" class="bg-white p-4 rounded shadow-md">
+            <p class="mb-2"><strong>ID de la commande :</strong> {{ order.id }}</p>
+            <p class="mb-2"><strong>Utilisateur :</strong> {{ userName }}</p>
+            <p class="mb-2"><strong>Produits :</strong></p>
+            <ul class="space-y-4 mb-4">
+                <li v-for="product in products" :key="product.id" class="flex items-center space-x-4">
+                    <router-link :to="{ name: 'ProductDetail', params: { id: product.id } }"
+                        class="flex items-center space-x-2">
+                        <img :src="product.image" alt="Image du produit" class="w-12 h-12 object-cover rounded" />
+                        <span class="font-semibold">{{ product.name }}</span>
                     </router-link>
-                    <p>Quantité : {{ product.quantity }}</p>
-                    <p>Tarif unitaire : {{ product.price.toFixed(2) }} €</p>
-                    <p>Prix total : {{ (product.price * product.quantity).toFixed(2) }} €</p>
+                    <div>
+                        <p>Quantité : {{ product.quantity }}</p>
+                        <p>Tarif unitaire : {{ product.price.toFixed(2) }} €</p>
+                        <p>Prix total : {{ (product.price * product.quantity).toFixed(2) }} €</p>
+                    </div>
                 </li>
             </ul>
-            <p>Montant total de la commande : {{ totalOrderPrice }} €</p>
-            <p>Statut :
-                <select v-if="isAdmin" v-model="order.status" @change="updateOrderStatus">
+            <p class="mb-2"><strong>Montant total de la commande :</strong> {{ totalOrderPrice }} €</p>
+            <p class="mb-2"><strong>Statut :</strong>
+                <select v-if="isAdmin" v-model="order.status" @change="updateOrderStatus"
+                    class="border rounded px-2 py-1">
                     <option v-for="status in orderStatuses" :key="status" :value="status">{{ status }}</option>
                 </select>
                 <span v-else>{{ order.status }}</span>
             </p>
-            <p>Créé le : {{ new Date(order.created).toLocaleString() }}</p>
-            <p>Mis à jour le : {{ new Date(order.updated).toLocaleString() }}</p>
-            <button v-if="order.status === 'livré'" @click="generateInvoice">Générer la facture</button>
+            <p class="mb-2"><strong>Créé le :</strong> {{ new Date(order.created).toLocaleString() }}</p>
+            <p class="mb-2"><strong>Mis à jour le :</strong> {{ new Date(order.updated).toLocaleString() }}</p>
+            <button v-if="order.status === 'livré'" @click="generateInvoice"
+                class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+                Générer la facture
+            </button>
         </div>
         <div v-else>
             <p>Chargement des détails de la commande...</p>

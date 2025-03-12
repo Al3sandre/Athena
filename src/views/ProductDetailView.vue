@@ -1,45 +1,50 @@
 <template>
-    <div>
-        <h1>Détails du Produit</h1>
+    <div class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Détails du Produit</h1>
         <div v-if="!loading">
             <div v-if="product">
                 <div v-if="isAdmin">
                     <!-- Champs d'édition pour les administrateurs -->
-                    <div @dblclick="editField('name')">
-                        <label for="name">Nom :</label>
+                    <div @dblclick="editField('name')" class="mb-4">
+                        <label for="name" class="block mb-2">Nom :</label>
                         <input v-if="editableField === 'name'" v-model="product.name" id="name" type="text"
-                            @blur="saveField" />
+                            @blur="saveField"
+                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <span v-else>{{ product.name }}</span>
                     </div>
 
-                    <div @dblclick="editField('description')">
-                        <label for="description">Description :</label>
+                    <div @dblclick="editField('description')" class="mb-4">
+                        <label for="description" class="block mb-2">Description :</label>
                         <textarea v-if="editableField === 'description'" v-model="product.description" id="description"
-                            @blur="saveField"></textarea>
+                            @blur="saveField"
+                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                         <span v-else>{{ product.description }}</span>
                     </div>
 
-                    <div @dblclick="editField('price')">
-                        <label for="price">Prix :</label>
+                    <div @dblclick="editField('price')" class="mb-4">
+                        <label for="price" class="block mb-2">Prix :</label>
                         <input v-if="editableField === 'price'" v-model="product.price" id="price" type="number"
-                            step="0.01" @blur="saveField" />
+                            step="0.01" @blur="saveField"
+                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <span v-else>{{ product.price }}€</span>
                     </div>
 
-                    <div @dblclick="editField('stock')">
-                        <label for="stock">Stock :</label>
+                    <div @dblclick="editField('stock')" class="mb-4">
+                        <label for="stock" class="block mb-2">Stock :</label>
                         <input v-if="editableField === 'stock'" v-model="product.stock" id="stock" type="number"
-                            @blur="saveField" />
+                            @blur="saveField"
+                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <span v-else>{{ product.stock }}</span>
                     </div>
 
-                    <div @dblclick="editField('category')">
-                        <label for="category">Catégorie :</label>
+                    <div @dblclick="editField('category')" class="mb-4">
+                        <label for="category" class="block mb-2">Catégorie :</label>
                         <div v-if="editableField === 'category'">
                             <div>
                                 <button v-for="category in categories" :key="category.id"
                                     @click="selectCategory(category.id)"
-                                    :class="{ selected: product.category === category.id }">
+                                    :class="{ 'bg-blue-500 text-white': product.category === category.id }"
+                                    class="px-4 py-2 border rounded mr-2 mb-2">
                                     {{ category.name }}
                                 </button>
                             </div>
@@ -47,30 +52,37 @@
                         <span v-else>{{ getCategoryName(product.category) || 'Non spécifiée' }}</span>
                     </div>
 
-                    <div>
+                    <div class="mb-4">
                         <img :src="getImageUrl(product)" alt="Image du produit" @click="triggerFileInput"
-                            style="cursor: pointer;" />
-                        <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none;" />
+                            class="cursor-pointer w-32 h-32 object-cover rounded" />
+                        <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
                     </div>
 
-                    <button @click="saveChanges">Enregistrer</button>
+                    <button @click="saveChanges"
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200">Enregistrer</button>
                 </div>
                 <div v-else>
                     <!-- Affichage des détails du produit pour les utilisateurs -->
-                    <p>Nom : {{ product.name }}</p>
-                    <p>Description : {{ product.description }}</p>
-                    <p>Prix : {{ product.price }}€</p>
-                    <p>Stock : {{ product.stock }}</p>
-                    <p>Catégorie : {{ getCategoryName(product.category) || 'Non spécifiée' }}</p>
-                    <img :src="getImageUrl(product)" alt="Image du produit" />
+                    <p class="mb-2"><strong>Nom :</strong> {{ product.name }}</p>
+                    <p class="mb-2"><strong>Description :</strong> {{ product.description }}</p>
+                    <p class="mb-2"><strong>Prix :</strong> {{ product.price }}€</p>
+                    <p class="mb-2"><strong>Stock :</strong> {{ product.stock }}</p>
+                    <p class="mb-2"><strong>Catégorie :</strong> {{ getCategoryName(product.category) || 'Non spécifiée'
+                        }}</p>
+                    <img :src="getImageUrl(product)" alt="Image du produit" class="w-32 h-32 object-cover rounded" />
                 </div>
                 <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
-                <div>
-                    <label for="quantity">Quantité :</label>
-                    <input v-model.number="quantity" id="quantity" type="number" min="1" />
-                    <button @click="addToCart">Ajouter au panier</button>
+                <div class="mt-4">
+                    <label for="quantity" class="block mb-2">Quantité :</label>
+                    <input v-model.number="quantity" id="quantity" type="number" min="1"
+                        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button @click="addToCart"
+                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">Ajouter
+                        au panier</button>
                 </div>
-                <button @click="goBack">Retour à la liste des produits</button>
+                <button @click="goBack"
+                    class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-200">Retour
+                    à la liste des produits</button>
             </div>
             <p v-else>Produit introuvable</p>
         </div>
