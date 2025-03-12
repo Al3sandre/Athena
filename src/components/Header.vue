@@ -10,16 +10,20 @@
             <router-link v-if="isAdmin" to="/users" class="text-white hover:text-gray-300">Utilisateurs</router-link>
             <router-link v-if="!user" to="/login" class="text-white hover:text-gray-300">Connexion</router-link>
         </div>
-        <button v-if="user" @click="logout"
-            class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200">
-            Déconnexion ({{ user.name }})
-        </button>
+        <div class="flex items-center space-x-4">
+            <CartWidget />
+            <button v-if="user" @click="logout"
+                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200">
+                Déconnexion ({{ user.name }})
+            </button>
+        </div>
     </nav>
 </template>
 
 <script setup>
 import { useUserStore } from '@/stores/userStore';
 import { computed, watch } from 'vue';
+import CartWidget from '@/components/CartWidget.vue';
 
 const userStore = useUserStore();
 userStore.loadUserFromSession();
