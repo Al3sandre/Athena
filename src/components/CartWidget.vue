@@ -1,11 +1,11 @@
 <template>
     <div v-if="user" class="relative">
-        <button @click="toggleCart"
+        <button @click.stop="toggleCart"
             class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
             Panier ({{ cart.length }})
         </button>
         <transition name="slide-fade">
-            <div v-if="isCartOpen"
+            <div v-if="isCartOpen" ref="cartWidget"
                 class="absolute top-full right-0 bg-white border border-gray-300 p-4 w-64 mt-2 rounded shadow-lg max-h-64 overflow-y-auto">
                 <ul v-if="!isLoading">
                     <li v-for="item in cart" :key="item.product_id" class="flex justify-between items-center mb-2">
@@ -32,18 +32,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useUserStore } from '@/stores/userStore';
 import { useProductStore } from '@/stores/productStore';
+import { useRouter } from 'vue-router';
 
 const cartStore = useCartStore();
 const userStore = useUserStore();
 const productStore = useProductStore();
+const router = useRouter();
 const cart = computed(() => cartStore.cart);
 const isLoading = computed(() => cartStore.isLoading);
 const isCartOpen = ref(false);
 const user = computed(() => userStore.user);
+const cartWidget = ref(null);
 
 const toggleCart = () => {
     isCartOpen.value = !isCartOpen.value;
@@ -71,7 +74,23 @@ const fetchCartData = async () => {
     }
 };
 
-onMounted(fetchCartData);
+const handleClickOutside = (event) => {
+    if (cartWidget.value && !cartWidget.value.contains(event.target)) {
+        isCartOpen.value = false;
+    }
+};
+
+onMounted(() => {
+    fetchCartData();
+    document.addEventListener('click', handleClickOutside);
+    router.afterEach(() => {
+        isCartOpen.value = false;
+    });
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 
 watch(user, async (newUser) => {
     if (newUser) {
