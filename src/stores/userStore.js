@@ -3,16 +3,19 @@ import pb from '@/api/pocketbase';
 
 export const useUserStore = defineStore('userStore', {
   state: () => ({
-    user: pb.authStore.model,
-    users: [] // Ajouter le tableau des utilisateurs
+    user: null,
+    users: [],
+    token: localStorage.getItem('auth_token') || null,
   }),
 
   actions: {
-    // ✅ Connexion avec PocketBase
     async login(email, password) {
       try {
-        const authData = await pb.collection('users').authWithPassword(email, password);
-        this.user = authData.record;
+        const response = await pb.post('/login', { email, password });
+        console.log('Réponse de connexion:', response.data);
+        this.token = response.data.access_token; // Assurez-vous d'utiliser le bon champ pour le token
+        localStorage.setItem('auth_token', this.token);
+        await this.loadUserFromSession(response.data.user.id); // Charger les informations de l'utilisateur après la connexion
         return true;
       } catch (error) {
         console.error('Erreur de connexion:', error);
@@ -20,88 +23,108 @@ export const useUserStore = defineStore('userStore', {
       }
     },
 
-    // ✅ Déconnexion
     async logout() {
-      pb.authStore.clear();
-      this.user = null;
+      try {
+        await pb.post('/logout', {}, {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+        this.user = null;
+        this.token = null;
+        localStorage.removeItem('auth_token');
+      } catch (error) {
+        console.error('Erreur de déconnexion:', error);
+      }
     },
 
-    // ✅ Charger l'utilisateur connecté
-    async loadUserFromSession() {
-      if (pb.authStore.isValid) {
-        this.user = pb.authStore.model;
-      } else {
+    async loadUserFromSession(userId) {
+      if (!this.token) {
+        console.error('Aucun token trouvé, utilisateur non connecté.');
+        // Afficher un message de notification ici si nécessaire
+        return;
+      }
+      try {
+        const response = await pb.get(`/users/${userId}`, { // Utiliser le bon endpoint pour récupérer les informations de l'utilisateur connecté
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+        this.user = response.data; // Assurez-vous que la réponse contient les informations de l'utilisateur
+      } catch (error) {
+        console.error('Erreur lors du chargement de l’utilisateur:', error);
         this.user = null;
       }
     },
 
-    // ✅ Récupérer le rôle de l'utilisateur
     getRole() {
       return this.user ? this.user.role : null;
     },
 
-    // ✅ Récupérer l'ID de l'utilisateur
     getUserId() {
       return this.user ? this.user.id : null;
     },
 
-    // ✅ Vérifier si l'utilisateur est administrateur
     isAdmin() {
       return this.getRole() === 'admin';
     },
 
-    // ✅ Créer un nouvel utilisateur
     async createUser(userData) {
       try {
-        const newUser = await pb.collection('users').create(userData);
-        this.users.push(newUser); // Ajouter le nouvel utilisateur à la liste
-        return newUser;
+        const response = await pb.post('/users', userData, {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+        this.users.push(response.data);
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la création de l’utilisateur:', error);
         throw error;
       }
     },
 
-    // ✅ Mettre à jour un utilisateur
     async updateUser(id, data) {
       try {
-        const updatedUser = await pb.collection('users').update(id, data);
+        const response = await pb.put(`/users/${id}`, data, {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
         const index = this.users.findIndex(user => user.id === id);
         if (index !== -1) {
-          this.users[index] = updatedUser; // Mettre à jour l'utilisateur dans la liste
+          this.users[index] = response.data;
         }
-        return updatedUser;
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la mise à jour de l’utilisateur:', error);
         throw error;
       }
     },
 
-    // ✅ Générer l'URL de l'avatar
-    getImageUrl(user) {
-      if (user.avatar) {
-        return `http://127.0.0.1:8090/api/files/users/${user.id}/${user.avatar}`;
-      }
-      return 'https://w7.pngwing.com/pngs/205/731/png-transparent-default-avatar-thumbnail.png'; // Remplacez par l'URL de l'avatar par défaut
-    },
-
-    // ✅ Récupérer les détails d'un utilisateur par ID
     async fetchUserById(userId) {
       try {
-        const response = await pb.collection('users').getOne(userId);
-        return response;
+        const response = await pb.get(`/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération de l’utilisateur:', error);
         throw error;
       }
     },
 
-    // ✅ Récupérer tous les utilisateurs
     async fetchAllUsers() {
       try {
-        const response = await pb.collection('users').getFullList();
-        this.users = response;
-        return response;
+        const response = await pb.get('/users', {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+        this.users = response.data;
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des utilisateurs:', error);
         return [];

@@ -26,7 +26,11 @@ import { computed, watch } from 'vue';
 import CartWidget from '@/components/CartWidget.vue';
 
 const userStore = useUserStore();
-userStore.loadUserFromSession();
+
+// Vérifiez si un token est présent avant d'appeler loadUserFromSession
+if (userStore.token) {
+    userStore.loadUserFromSession(userStore.getUserId());
+}
 
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.isAdmin());
@@ -34,14 +38,12 @@ const isAdmin = computed(() => userStore.isAdmin());
 const logout = () => {
     userStore.logout();
 };
+
 // Surveiller les changements dans l'état de l'utilisateur
 watch(user, (newUser) => {
     if (!newUser) {
         // Rediriger l'utilisateur vers la page de connexion
-        userStore.loadUserFromSession();
-        if (!newUser) {
-            window.location.href = '/login';
-        }
+        window.location.href = '/login';
     }
 });
 </script>

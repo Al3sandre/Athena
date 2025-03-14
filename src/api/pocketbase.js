@@ -1,7 +1,10 @@
-import PocketBase from 'pocketbase';
+import axios from 'axios';
 
-// Remplace l'URL par celle de ton instance PocketBase
-const pb = new PocketBase('http://localhost:8090');
-// Désactiver l'annulation automatique des requêtes
-pb.autoCancellation(false);
+const pb = axios.create({
+    baseURL: 'http://localhost:8000/api', // Remplacez par l'URL de votre API Laravel
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
 export default pb;

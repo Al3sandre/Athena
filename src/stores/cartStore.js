@@ -12,8 +12,12 @@ export const useCartStore = defineStore('cartStore', {
 
   actions: {
     async fetchCart() {
-      this.isLoading = true;
       const userStore = useUserStore();
+      if (!userStore.user) {
+        console.error("Utilisateur non connecté.");
+        return;
+      }
+      this.isLoading = true;
       const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         const userCart = await pb.collection('carts').getFirstListItem(`user_id="${userId}"`);
@@ -56,6 +60,10 @@ export const useCartStore = defineStore('cartStore', {
 
     async addToCart(product, quantity) {
       const userStore = useUserStore();
+      if (!userStore.user) {
+        console.error("Utilisateur non connecté.");
+        return;
+      }
       const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         const existingItem = this.cart.find(p => p.product_id === product.id);
@@ -74,6 +82,10 @@ export const useCartStore = defineStore('cartStore', {
 
     async removeFromCart(productId) {
       const userStore = useUserStore();
+      if (!userStore.user) {
+        console.error("Utilisateur non connecté.");
+        return;
+      }
       const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         this.cart = this.cart.filter(p => p.product_id !== productId);
@@ -86,6 +98,10 @@ export const useCartStore = defineStore('cartStore', {
 
     async clearCart() {
       const userStore = useUserStore();
+      if (!userStore.user) {
+        console.error("Utilisateur non connecté.");
+        return;
+      }
       const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       try {
         this.cart = [];
@@ -116,6 +132,10 @@ export const useCartStore = defineStore('cartStore', {
 
     async updateQuantity(productId, quantity) {
       const userStore = useUserStore();
+      if (!userStore.user) {
+        console.error("Utilisateur non connecté.");
+        return;
+      }
       const userId = userStore.user.id; // Récupérez l'ID de l'utilisateur depuis le userStore
       const item = this.cart.find(p => p.product_id === productId);
       if (item) {
