@@ -46,20 +46,30 @@ const router = createRouter({
 });
 
 // Middleware de protection des routes
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  const userRole = userStore.getRole();
 
-  if (to.meta.requiresAuth) {
-    if (!userRole) {
-      return next('/login'); // Redirection vers la connexion si l'utilisateur n'est pas connecté
-    }
 
-    if (!to.meta.roles.includes(userRole)) {
-      return next('/'); // Redirige vers l'accueil si l'accès est interdit
+  // Si l'utilisateur se rend sur la page de connexion
+  if (to.path === '/login') {
+    if (userStore.token) {
+      return next('/'); // Redirige vers l'accueil si l'utilisateur est déjà connecté
     }
+    return next();
   }
-  next();
+
+  // Autorisez l'accès aux routes publiques
+  if (!to.meta.requiresAuth) {
+    return next();
+  }
+
+  // Vérifiez si l'utilisateur est authentifié
+  if (!userStore.token) {
+    return next('/login'); // Redirection vers la connexion si aucun token n'est présent
+  }
+
+  // Si l'utilisateur est authentifié, autorisez l'accès
+  return next();
 });
 
 export default router;

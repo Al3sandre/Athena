@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import pb from '@/api/pocketbase';
+import pb from '@/api/pocketbase'; // Utilisation de l'instance Axios configurée
 
 export const useUserStore = defineStore('userStore', {
   state: () => ({
@@ -9,126 +9,182 @@ export const useUserStore = defineStore('userStore', {
   }),
 
   actions: {
+    // ✅ Connexion de l'utilisateur
     async login(email, password) {
       try {
         const response = await pb.post('/login', { email, password });
-        console.log('Réponse de connexion:', response.data);
-        this.token = response.data.access_token; // Assurez-vous d'utiliser le bon champ pour le token
+
+        this.token = response.data.access_token;
         localStorage.setItem('auth_token', this.token);
-        await this.loadUserFromSession(response.data.user.id); // Charger les informations de l'utilisateur après la connexion
+
+        // Stockez les informations de l'utilisateur, y compris son ID
+        this.user = response.data.user;
         return true;
       } catch (error) {
-        console.error('Erreur de connexion:', error);
+        console.error('Erreur de connexion:', error.response?.data || error.message);
         return false;
       }
     },
 
+    // ✅ Déconnexion de l'utilisateur
     async logout() {
+      if (!this.token) {
+        console.warn('Aucun token trouvé, déconnexion inutile.');
+        this.user = null;
+        localStorage.removeItem('auth_token');
+        return;
+      }
+
       try {
         await pb.post('/logout', {}, {
           headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+            Authorization: `Bearer ${this.token}`,
+          },
         });
+      } catch (error) {
+        if (error.response?.status === 401) {
+          console.warn('Token invalide ou déjà expiré.');
+        } else {
+          console.error('Erreur de déconnexion:', error.response?.data || error.message);
+        }
+      } finally {
         this.user = null;
         this.token = null;
         localStorage.removeItem('auth_token');
-      } catch (error) {
-        console.error('Erreur de déconnexion:', error);
       }
     },
 
-    async loadUserFromSession(userId) {
+    // ✅ Charger les informations de l'utilisateur connecté
+    async loadUserFromSession() {
       if (!this.token) {
-        console.error('Aucun token trouvé, utilisateur non connecté.');
-        // Afficher un message de notification ici si nécessaire
+        console.warn('Aucun token trouvé, utilisateur non connecté.');
         return;
       }
+
       try {
-        const response = await pb.get(`/users/${userId}`, { // Utiliser le bon endpoint pour récupérer les informations de l'utilisateur connecté
+        const response = await pb.get('/users/${userId}', {
           headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+            Authorization: `Bearer ${this.token}`,
+          },
         });
-        this.user = response.data; // Assurez-vous que la réponse contient les informations de l'utilisateur
+        this.user = response.data;
       } catch (error) {
-        console.error('Erreur lors du chargement de l’utilisateur:', error);
-        this.user = null;
+        console.warn('Erreur lors du chargement de l’utilisateur:', error.response?.data || error.message);
+        this.logout(); // Déconnectez l'utilisateur si le token est invalide
       }
     },
 
-    getRole() {
-      return this.user ? this.user.role : null;
-    },
+    // ✅ Vérifier la validité du token
+    async verifyToken() {
+      if (!this.token) {
+        console.warn('Aucun token trouvé, utilisateur non connecté.');
+        return false;
+      }
 
-    getUserId() {
-      return this.user ? this.user.id : null;
-    },
-
-    isAdmin() {
-      return this.getRole() === 'admin';
-    },
-
-    async createUser(userData) {
       try {
-        const response = await pb.post('/users', userData, {
+        const response = await pb.get('/users/${userId}', {
           headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+            Authorization: `Bearer ${this.token}`,
+          },
         });
-        this.users.push(response.data);
+        this.user = response.data; // Chargez les informations de l'utilisateur
+        return true;
+      } catch (error) {
+        console.warn('Token invalide ou expiré, déconnexion en cours:', error.response?.data || error.message);
+        this.logout(); // Déconnectez l'utilisateur si le token est invalide
+        return false;
+      }
+    },
+
+    // ✅ Récupérer tous les utilisateurs
+    async fetchAllUsers() {
+      try {
+        const response = await pb.get('/users', {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+        this.users = response.data;
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la création de l’utilisateur:', error);
+        console.error('Erreur lors de la récupération des utilisateurs:', error.response?.data || error.message);
+        return [];
+      }
+    },
+
+    // ✅ Récupérer un utilisateur par ID
+    async fetchUserById(userId) {
+      try {
+        const response = await pb.get(`/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l’utilisateur:', error.response?.data || error.message);
         throw error;
       }
     },
 
-    async updateUser(id, data) {
+    // ✅ Créer un utilisateur
+    async createUser(userData) {
       try {
-        const response = await pb.put(`/users/${id}`, data, {
+        const response = await pb.post('/users', userData, {
           headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+            Authorization: `Bearer ${this.token}`,
+          },
         });
-        const index = this.users.findIndex(user => user.id === id);
+        this.users.push(response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Erreur lors de la création de l’utilisateur:', error.response?.data || error.message);
+        throw error;
+      }
+    },
+
+    // ✅ Mettre à jour un utilisateur
+    async updateUser(userId, updatedData) {
+      try {
+        const response = await pb.put(`/users/${userId}`, updatedData, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+        const index = this.users.findIndex(user => user.id === userId);
         if (index !== -1) {
           this.users[index] = response.data;
         }
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la mise à jour de l’utilisateur:', error);
+        console.error('Erreur lors de la mise à jour de l’utilisateur:', error.response?.data || error.message);
         throw error;
       }
     },
 
-    async fetchUserById(userId) {
+    // ✅ Supprimer un utilisateur
+    async deleteUser(userId) {
       try {
-        const response = await pb.get(`/users/${userId}`, {
+        await pb.delete(`/users/${userId}`, {
           headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+            Authorization: `Bearer ${this.token}`,
+          },
         });
-        return response.data;
+        this.users = this.users.filter(user => user.id !== userId);
       } catch (error) {
-        console.error('Erreur lors de la récupération de l’utilisateur:', error);
+        console.error('Erreur lors de la suppression de l’utilisateur:', error.response?.data || error.message);
         throw error;
       }
     },
 
-    async fetchAllUsers() {
-      try {
-        const response = await pb.get('/users', {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
-        });
-        this.users = response.data;
-        return response.data;
-      } catch (error) {
-        console.error('Erreur lors de la récupération des utilisateurs:', error);
-        return [];
-      }
-    }
-  }
+    // ✅ Récupérer le rôle de l'utilisateur connecté
+    getRole() {
+      return this.user ? this.user.role : null;
+    },
+
+    // ✅ Vérifier si l'utilisateur est administrateur
+    isAdmin() {
+      return this.getRole() === 'admin';
+    },
+  },
 });

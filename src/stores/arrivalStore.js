@@ -76,7 +76,7 @@ export const useArrivalStore = defineStore('arrivalStore', {
 
         async updateArrival(arrivalId, arrivalData) {
             try {
-                const response = await pb.collection('arrivals').update(arrivalId, arrivalData);
+                const response = await pb.collection('arrivals').update(`${arrivalId}?_method=PUT`, arrivalData);
                 return response;
             } catch (error) {
                 console.error('Erreur lors de la mise à jour de l’arrivage:', error);
@@ -92,7 +92,7 @@ export const useArrivalStore = defineStore('arrivalStore', {
                 });
                 if (arrivalProduct) {
                     console.log('Updating existing arrival product:', arrivalProduct);
-                    await pb.collection('arrival_products').update(arrivalProduct.id, { quantity });
+                    await pb.collection('arrival_products').update(`${arrivalProduct.id}?_method=PUT`, { quantity });
                 } else {
                     console.log('Creating new arrival product');
                     await pb.collection('arrival_products').create({
@@ -113,11 +113,11 @@ export const useArrivalStore = defineStore('arrivalStore', {
                 const arrival = await this.fetchArrivalById(arrivalId);
                 for (const product of arrival.products) {
                     console.log(`Updating stock for product ID: ${product.id}, quantity: ${product.quantity}`);
-                    await pb.collection('products').update(product.id, {
+                    await pb.collection('products').update(`${product.id}?_method=PUT`, {
                         stock: product.stock + product.quantity
                     });
                 }
-                await pb.collection('arrivals').update(arrivalId, { status: 'réceptionné' });
+                await pb.collection('arrivals').update(`${arrivalId}?_method=PUT`, { status: 'réceptionné' });
                 console.log('Arrival receptioned');
             } catch (error) {
                 console.error('Erreur lors de la réception de l’arrivage:', error);
@@ -131,11 +131,11 @@ export const useArrivalStore = defineStore('arrivalStore', {
                 const arrival = await this.fetchArrivalById(arrivalId);
                 for (const product of arrival.products) {
                     console.log(`Updating stock for product ID: ${product.id}, quantity: ${product.quantity}`);
-                    await pb.collection('products').update(product.id, {
+                    await pb.collection('products').update(`${product.id}?_method=PUT`, {
                         stock: product.stock - product.quantity
                     });
                 }
-                await pb.collection('arrivals').update(arrivalId, { status: 'en cours' });
+                await pb.collection('arrivals').update(`${arrivalId}?_method=PUT`, { status: 'en cours' });
                 console.log('Arrival unreceptioned');
             } catch (error) {
                 console.error('Erreur lors de la modification du statut de l’arrivage:', error);

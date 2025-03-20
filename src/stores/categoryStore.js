@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import pb from '@/api/pocketbase';
+import axios from 'axios';
 
 export const useCategoryStore = defineStore('categoryStore', {
   state: () => ({
@@ -7,54 +7,59 @@ export const useCategoryStore = defineStore('categoryStore', {
   }),
 
   actions: {
-    // ✅ Récupérer toutes les catégories depuis PocketBase
+    // ✅ Récupérer toutes les catégories depuis l'API Laravel
     async fetchCategories() {
       try {
-        this.categories = await pb.collection('categories').getFullList();
+        const response = await axios.get('/api/categories');
+        this.categories = response.data; // Mise à jour de l'état local
       } catch (error) {
         console.error('Erreur lors de la récupération des catégories:', error);
       }
     },
 
-    // ✅ Ajouter une catégorie dans PocketBase
+    // ✅ Ajouter une catégorie via l'API Laravel
     async addCategory(categoryData) {
       try {
-        const newCategory = await pb.collection('categories').create(categoryData);
-        this.categories.push(newCategory); // Ajout localement
-        return newCategory;
+        const response = await axios.post('/api/categories', categoryData);
+        this.categories.push(response.data); // Ajout localement
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de l’ajout de la catégorie:', error);
         throw error;
       }
     },
 
-    // ✅ Modifier une catégorie existante dans PocketBase
+    // ✅ Modifier une catégorie existante via l'API Laravel
     async updateCategory(categoryId, updatedData) {
       try {
-        const updatedCategory = await pb.collection('categories').update(categoryId, updatedData);
+        const response = await axios.put(`/api/categories/${categoryId}`, updatedData);
         const index = this.categories.findIndex(c => c.id === categoryId);
         if (index !== -1) {
-          this.categories[index] = updatedCategory;
+          this.categories[index] = response.data; // Mise à jour locale
         }
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la modification de la catégorie:', error);
+        throw error;
       }
     },
 
-    // ✅ Supprimer une catégorie dans PocketBase
+    // ✅ Supprimer une catégorie via l'API Laravel
     async deleteCategory(categoryId) {
       try {
-        await pb.collection('categories').delete(categoryId);
-        this.categories = this.categories.filter(c => c.id !== categoryId);
+        await axios.delete(`/api/categories/${categoryId}`);
+        this.categories = this.categories.filter(c => c.id !== categoryId); // Suppression locale
       } catch (error) {
         console.error('Erreur lors de la suppression de la catégorie:', error);
+        throw error;
       }
     },
 
-    // ✅ Récupérer une seule catégorie par ID
+    // ✅ Récupérer une seule catégorie par ID via l'API Laravel
     async fetchCategoryById(categoryId) {
       try {
-        return await pb.collection('categories').getOne(categoryId);
+        const response = await axios.get(`/api/categories/${categoryId}`);
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération de la catégorie:', error);
         return null;

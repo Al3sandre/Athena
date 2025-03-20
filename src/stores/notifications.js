@@ -7,7 +7,7 @@ export const useNotificationStore = defineStore('notificationStore', {
 
   actions: {
     // ✅ Ajouter une notification avec persistance
-    addNotification(message, type = 'info', duration = 3000) {
+    addNotification(message, type = 'info', duration = 0) {
       const notification = { id: Date.now(), message, type };
       this.notifications.push(notification);
       this.saveNotifications();

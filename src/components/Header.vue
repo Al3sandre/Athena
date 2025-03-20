@@ -22,30 +22,30 @@
 
 <script setup>
 import { useUserStore } from '@/stores/userStore';
-import { computed, watch } from 'vue';
+import { computed, onMounted } from 'vue';
 import CartWidget from '@/components/CartWidget.vue';
 
 const userStore = useUserStore();
 
-// Vérifiez si un token est présent avant d'appeler loadUserFromSession
-if (userStore.token) {
-    userStore.loadUserFromSession(userStore.getUserId());
-}
+// Vérifiez le token et chargez l'utilisateur si nécessaire
+onMounted(async () => {
+    if (userStore.token) {
+        const isValid = await userStore.verifyToken();
+        if (!isValid) {
+            console.warn('Utilisateur non connecté ou token invalide.');
+        }
+    }
+});
 
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.isAdmin());
 
 const logout = () => {
-    userStore.logout();
-};
-
-// Surveiller les changements dans l'état de l'utilisateur
-watch(user, (newUser) => {
-    if (!newUser) {
-        // Rediriger l'utilisateur vers la page de connexion
-        window.location.href = '/login';
+    if (userStore.token) {
+        userStore.logout();
+        window.location.href = '/login'; // Redirigez vers la page de connexion après la déconnexion
     }
-});
+};
 </script>
 
 <style scoped>

@@ -31,17 +31,21 @@ const password = ref('');
 const error = ref('');
 
 const handleLogin = async () => {
-  const success = await userStore.login(email.value, password.value);
+  const emailValue = email.value;
+  const passwordValue = password.value;
+
+  const success = await userStore.login(emailValue, passwordValue);
   if (success) {
-    router.push(router.currentRoute.value.query.redirect || '/'); // Redirection vers la page d’accueil après connexion
-    notificationStore.clearNotifications();
+    router.push('/'); // Redirige vers l'accueil après connexion
   } else {
-    error.value = "Identifiants incorrects.";
+    console.error('Échec de la connexion');
+    error.value = 'Échec de la connexion. Veuillez vérifier vos identifiants.';
   }
 };
 
 // Ajouter une notification lorsque l'utilisateur accède à la page de connexion
 onMounted(() => {
+  notificationStore.clearNotifications();
   if (!userStore.user) {
     notificationStore.addNotification("Si vous n'avez pas d'identifiant, veuillez vous rapprocher de l'administrateur.", 'info', 5000);
   }
