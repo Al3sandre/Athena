@@ -173,11 +173,9 @@ const handleSubmit = async () => {
             formData.append('image', imageFile.value);
         }
 
-        console.log('Données envoyées :', Object.fromEntries(formData.entries()));
-
         await productStore.addProduct(formData);
 
-        router.push('/');
+        router.push('/products');
     } catch (error) {
         console.error('Erreur lors de la création du produit:', error);
     }

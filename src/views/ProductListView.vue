@@ -15,20 +15,25 @@
                 Créer un produit
             </button>
         </div>
-        <ul class="space-y-4">
-            <li v-for="product in filteredProducts" :key="product.id" class="bg-white p-4 rounded shadow-md">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div v-for="product in filteredProducts" :key="product.id" class="bg-white p-4 rounded shadow-md relative">
                 <router-link :to="{ name: 'ProductDetail', params: { id: product.id } }"
-                    class="flex items-center space-x-4">
-                    <img :src="getImageUrl(product)" alt="Image du produit" class="w-16 h-16 object-cover rounded" />
-                    <div>
-                        <h2 class="text-xl font-semibold">{{ product.name }}</h2>
-                        <p>Catégorie: {{ product.expand?.category?.name || 'Non spécifiée' }}</p>
-                        <p>Prix: {{ product.price }}€</p>
-                        <p>Quantité disponible: {{ product.stock }}</p>
+                    class="flex flex-col items-center space-y-4">
+                    <img :src="getImageUrl(product)" alt="Image du produit" class="w-32 h-32 object-cover rounded" />
+                    <div class="text-center">
+                        <h2 class="text-lg font-semibold">{{ product.name }}</h2>
+                        <p class="text-sm text-gray-600">Catégorie: {{ product.expand?.category?.name || 'Non spécifiée'
+                        }}</p>
+                        <p class="text-sm text-gray-600">Prix: {{ product.price }}€</p>
+                        <p class="text-sm text-gray-600">Quantité disponible: {{ product.stock }}</p>
                     </div>
                 </router-link>
-            </li>
-        </ul>
+                <button v-if="isAdmin" @click="deleteProduct(product.id)"
+                    class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition duration-200">
+                    Supprimer
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -49,6 +54,7 @@ const selectedCategory = ref('');
 const products = ref([]);
 
 onMounted(async () => {
+    console.log(productStore.products);
     try {
         await productStore.fetchProducts(); // Recharge les produits depuis l'API
         products.value = productStore.products; // Met à jour la liste locale des produits
@@ -72,11 +78,64 @@ const filteredProducts = computed(() => {
 const goToCreateProduct = () => {
     router.push({ name: 'product-create' });
 };
+
 const getImageUrl = (product) => {
-    return productStore.getImageUrl(product);
+    if (!product.image) {
+        return '/placeholder-image.png'; // Image par défaut si aucune image n'est disponible
+    }
+    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${product.image}`;
+};
+
+const deleteProduct = async (productId) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+        try {
+            await productStore.deleteProduct(productId); // Supprime le produit via le store
+            await productStore.fetchProducts(); // Recharge les produits après suppression
+            products.value = productStore.products; // Met à jour la liste locale
+        } catch (error) {
+            console.error('Erreur lors de la suppression du produit:', error);
+        }
+    }
 };
 
 onMounted(() => {
     categoryStore.fetchCategories();
 });
 </script>
+
+<style scoped>
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.sm\:grid-cols-2 {
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.md\:grid-cols-3 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.lg\:grid-cols-4 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+img {
+    border-radius: 0.5rem;
+}
+
+button {
+    cursor: pointer;
+}
+</style>
