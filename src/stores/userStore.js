@@ -19,6 +19,7 @@ export const useUserStore = defineStore('userStore', {
 
         // Stockez les informations de l'utilisateur, y compris son ID
         this.user = response.data.user;
+        localStorage.setItem('user_id', this.user.id); // Stockez l'ID de l'utilisateur
         return true;
       } catch (error) {
         console.error('Erreur de connexion:', error.response?.data || error.message);
@@ -32,6 +33,7 @@ export const useUserStore = defineStore('userStore', {
         console.warn('Aucun token trouvé, déconnexion inutile.');
         this.user = null;
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_id');
         return;
       }
 
@@ -41,6 +43,7 @@ export const useUserStore = defineStore('userStore', {
             Authorization: `Bearer ${this.token}`,
           },
         });
+        console.log('Déconnexion réussie.');
       } catch (error) {
         if (error.response?.status === 401) {
           console.warn('Token invalide ou déjà expiré.');
@@ -51,6 +54,7 @@ export const useUserStore = defineStore('userStore', {
         this.user = null;
         this.token = null;
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_id');
       }
     },
 
@@ -62,7 +66,13 @@ export const useUserStore = defineStore('userStore', {
       }
 
       try {
-        const response = await pb.get('/users/${userId}', {
+        const userId = this.user?.id || localStorage.getItem('user_id');
+        if (!userId) {
+          console.warn('Aucun ID utilisateur trouvé.');
+          return;
+        }
+
+        const response = await pb.get(`/users/${userId}`, {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
@@ -82,7 +92,13 @@ export const useUserStore = defineStore('userStore', {
       }
 
       try {
-        const response = await pb.get('/users/${userId}', {
+        const userId = this.user?.id || localStorage.getItem('user_id');
+        if (!userId) {
+          console.warn('Aucun ID utilisateur trouvé.');
+          return false;
+        }
+
+        const response = await pb.get(`/users/${userId}`, {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
