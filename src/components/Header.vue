@@ -35,6 +35,12 @@ onMounted(async () => {
             console.warn('Utilisateur non connecté ou token invalide.');
         }
     }
+    const handleBeforeUnload = (event) => {
+        event.preventDefault();
+        event.returnValue = ''; // Nécessaire pour afficher un message d'avertissement dans certains navigateurs
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
 const user = computed(() => userStore.user);
