@@ -26,8 +26,7 @@ export const useCategoryStore = defineStore('categoryStore', {
     async addCategory(categoryData) {
       try {
         const response = await pb.post('/categories', categoryData);
-        this.categories.push(response.data); // Ajout localement
-        return response.data;
+        return response.data; // Retourne la réponse complète de l'API
       } catch (error) {
         console.error('Erreur lors de l’ajout de la catégorie:', error);
         throw error;

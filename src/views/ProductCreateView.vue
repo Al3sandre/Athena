@@ -28,9 +28,10 @@
                     placeholder="Rechercher une catégorie..."
                     class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 <ul v-if="categorySearchQuery && filteredCategories.length > 0" class="search-results mt-2">
-                    <li v-for="cat in filteredCategories" :key="cat.id" @click="selectCategory(cat)"
-                        class="px-4 py-2 cursor-pointer hover:bg-gray-100">
-                        {{ cat.name }}
+                    <li v-for="cat in filteredCategories" :key="cat.id" @click="toggleCategory(cat)"
+                        class="px-4 py-2 cursor-pointer hover:bg-gray-100 flex justify-between items-center">
+                        <span>{{ cat.name }}</span>
+                        <span v-if="selectedCategories.includes(cat.id)" class="text-green-500 font-bold">✔</span>
                     </li>
                 </ul>
                 <div v-if="categorySearchQuery && filteredCategories.length === 0" class="mt-2">
@@ -39,6 +40,18 @@
                         Créer la catégorie "{{ categorySearchQuery }}"
                     </button>
                 </div>
+                <div v-if="categoryCreationMessage" class="mt-2 text-green-600">
+                    {{ categoryCreationMessage }}
+                </div>
+            </div>
+            <div class="mt-4">
+                <h2 class="text-lg font-bold mb-2">Catégories sélectionnées :</h2>
+                <ul>
+                    <li v-for="catId in selectedCategories" :key="catId" class="flex justify-between items-center">
+                        <span>{{ getCategoryName(catId) }}</span>
+                        <button @click="removeCategory(catId)" class="text-red-500 hover:underline">Retirer</button>
+                    </li>
+                </ul>
             </div>
             <div>
                 <label for="image" class="block mb-2">Image:</label>
@@ -67,17 +80,19 @@ const name = ref('');
 const description = ref('');
 const price = ref(0);
 const stock = ref(0);
-const category = ref('');
 const imageFile = ref(null);
 
 const categories = ref([]);
 const categorySearchQuery = ref('');
+const selectedCategories = ref([]); // Tableau pour stocker les IDs des catégories sélectionnées
+const categoryCreationMessage = ref(''); // Message de confirmation pour la création de catégorie
+
 const filteredCategories = computed(() => {
     if (!Array.isArray(categories.value)) {
         return [];
     }
     return categories.value.filter(cat =>
-        cat.name.toLowerCase().includes(categorySearchQuery.value.toLowerCase())
+        cat && cat.name && cat.name.toLowerCase().includes(categorySearchQuery.value.toLowerCase())
     );
 });
 
@@ -85,7 +100,6 @@ onMounted(async () => {
     try {
         await categoryStore.fetchCategories();
         categories.value = categoryStore.categories;
-        console.log('Catégories chargées :', categories.value); // Log pour vérifier les données
     } catch (error) {
         console.error('Erreur lors de la récupération des catégories:', error);
     }
@@ -95,45 +109,69 @@ const handleFileUpload = (event) => {
     imageFile.value = event.target.files[0];
 };
 
-const selectCategory = (cat) => {
-    category.value = cat.id;
-    categorySearchQuery.value = cat.name;
+const toggleCategory = (cat) => {
+    const index = selectedCategories.value.indexOf(cat.id);
+    if (index === -1) {
+        selectedCategories.value.push(cat.id); // Ajouter la catégorie si elle n'est pas déjà sélectionnée
+    } else {
+        selectedCategories.value.splice(index, 1); // Supprimer la catégorie si elle est déjà sélectionnée
+    }
 };
 
 const createCategory = async () => {
     try {
-        const newCategory = await categoryStore.addCategory({ name: categorySearchQuery.value });
-        category.value = newCategory.id;
-        categorySearchQuery.value = newCategory.name;
-        categories.value.push(newCategory);
+        const response = await categoryStore.addCategory({ name: categorySearchQuery.value });
+        const newCategory = response.category; // Accéder à la catégorie via la clé `category`
+
+        if (newCategory && newCategory.id && newCategory.name) {
+            categories.value.push(newCategory); // Ajouter la nouvelle catégorie à la liste locale
+            selectedCategories.value.push(newCategory.id); // Sélectionner automatiquement la nouvelle catégorie
+            categorySearchQuery.value = ''; // Réinitialiser le champ de recherche
+
+            // Afficher un message de confirmation
+            categoryCreationMessage.value = `Catégorie "${newCategory.name}" créée et sélectionnée.`;
+        } else {
+            console.error('La catégorie créée est invalide:', newCategory);
+            categoryCreationMessage.value = 'Erreur : la catégorie créée est invalide.';
+        }
+
+        setTimeout(() => {
+            categoryCreationMessage.value = ''; // Effacer le message après 3 secondes
+        }, 3000);
     } catch (error) {
         console.error('Erreur lors de la création de la catégorie:', error);
+        categoryCreationMessage.value = 'Erreur lors de la création de la catégorie.';
+    }
+};
+
+const getCategoryName = (id) => {
+    const category = categories.value.find(cat => cat.id === id);
+    return category ? category.name : 'Catégorie inconnue';
+};
+
+const removeCategory = (id) => {
+    const index = selectedCategories.value.indexOf(id);
+    if (index !== -1) {
+        selectedCategories.value.splice(index, 1); // Retirer la catégorie de la liste des catégories sélectionnées
     }
 };
 
 const handleSubmit = async () => {
     try {
-        const productData = {
-            name: name.value,
-            description: description.value,
-            price: price.value,
-            stock: stock.value,
-            category: category.value
-        };
+        const formData = new FormData();
+        formData.append('name', name.value);
+        formData.append('description', description.value);
+        formData.append('price', price.value);
+        formData.append('stock', parseInt(stock.value, 10)); // Convertir en entier
+
+        // Ajouter les catégories sélectionnées comme un tableau d'IDs
+        formData.append('categories', JSON.stringify(selectedCategories.value));
 
         if (imageFile.value) {
-            const formData = new FormData();
-            formData.append('name', name.value);
-            formData.append('description', description.value);
-            formData.append('price', price.value);
-            formData.append('stock', stock.value);
-            formData.append('category', category.value);
             formData.append('image', imageFile.value);
-
-            await productStore.addProduct(formData);
-        } else {
-            await productStore.addProduct(productData);
         }
+
+        await productStore.addProduct(formData);
 
         router.push('/products');
     } catch (error) {
