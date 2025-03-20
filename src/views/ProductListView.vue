@@ -2,19 +2,23 @@
     <div class="p-4">
         <h1 class="text-2xl font-bold mb-4">Liste des Produits</h1>
         <div class="mb-4 flex items-center space-x-4">
+            <!-- Barre de recherche -->
             <input v-model="searchQuery" type="text" placeholder="Rechercher un produit"
                 class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <!-- Filtre par catégorie -->
             <select v-model="selectedCategory"
                 class="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Toutes les catégories</option>
                 <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}
                 </option>
             </select>
+            <!-- Bouton pour créer un produit -->
             <button v-if="isAdmin" @click="goToCreateProduct"
                 class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
                 Créer un produit
             </button>
         </div>
+        <!-- Liste des produits -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div v-for="product in filteredProducts" :key="product.id" class="bg-white p-4 rounded shadow-md relative">
                 <router-link :to="{ name: 'ProductDetail', params: { id: product.id } }"
@@ -46,7 +50,7 @@
 import { useProductStore } from '@/stores/productStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useUserStore } from '@/stores/userStore';
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 const productStore = useProductStore();
@@ -58,6 +62,7 @@ const selectedCategory = ref('');
 
 const products = ref([]);
 
+// Charger les produits et les catégories
 onMounted(async () => {
     try {
         await productStore.fetchProducts(); // Recharge les produits depuis l'API
@@ -69,13 +74,21 @@ onMounted(async () => {
     console.log('products', products.value);
 });
 
+// Réinitialiser le filtre de catégorie si une recherche est effectuée
+watch(searchQuery, (newValue) => {
+    if (newValue) {
+        selectedCategory.value = ''; // Réinitialise la catégorie sélectionnée
+    }
+});
+
 const categories = computed(() => categoryStore.categories);
 const isAdmin = computed(() => userStore.getRole() === 'admin');
 
+// Logique de filtrage des produits
 const filteredProducts = computed(() => {
     return products.value.filter(product => {
         const matchesSearchQuery = !searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase());
-        const matchesCategory = !selectedCategory.value || product.expand?.category?.id === selectedCategory.value;
+        const matchesCategory = !selectedCategory.value || product.categories.some(category => category.id === selectedCategory.value);
         return matchesSearchQuery && matchesCategory;
     });
 });
@@ -102,7 +115,6 @@ const deleteProduct = async (productId) => {
         }
     }
 };
-
 </script>
 
 <style scoped>
