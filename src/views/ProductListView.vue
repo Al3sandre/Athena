@@ -22,8 +22,13 @@
                     <img :src="getImageUrl(product)" alt="Image du produit" class="w-32 h-32 object-cover rounded" />
                     <div class="text-center">
                         <h2 class="text-lg font-semibold">{{ product.name }}</h2>
-                        <p class="text-sm text-gray-600">Catégorie: {{ product.expand?.category?.name || 'Non spécifiée'
-                        }}</p>
+                        <p class="text-sm text-gray-600">
+                            Catégories :
+                            <span v-if="product.categories && product.categories.length > 0">
+                                {{product.categories.map(category => category.name).join(', ')}}
+                            </span>
+                            <span v-else>Non spécifiées</span>
+                        </p>
                         <p class="text-sm text-gray-600">Prix: {{ product.price }}€</p>
                         <p class="text-sm text-gray-600">Quantité disponible: {{ product.stock }}</p>
                     </div>
@@ -54,13 +59,14 @@ const selectedCategory = ref('');
 const products = ref([]);
 
 onMounted(async () => {
-    console.log(productStore.products);
     try {
         await productStore.fetchProducts(); // Recharge les produits depuis l'API
         products.value = productStore.products; // Met à jour la liste locale des produits
     } catch (error) {
         console.error('Erreur lors du chargement des produits:', error);
     }
+    categoryStore.fetchCategories();
+    console.log('products', products.value);
 });
 
 const categories = computed(() => categoryStore.categories);
@@ -68,10 +74,9 @@ const isAdmin = computed(() => userStore.getRole() === 'admin');
 
 const filteredProducts = computed(() => {
     return products.value.filter(product => {
-        return (
-            (!searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase())) &&
-            (!selectedCategory.value || product.expand.category.id === selectedCategory.value)
-        );
+        const matchesSearchQuery = !searchQuery.value || product.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+        const matchesCategory = !selectedCategory.value || product.expand?.category?.id === selectedCategory.value;
+        return matchesSearchQuery && matchesCategory;
     });
 });
 
@@ -98,9 +103,6 @@ const deleteProduct = async (productId) => {
     }
 };
 
-onMounted(() => {
-    categoryStore.fetchCategories();
-});
 </script>
 
 <style scoped>
