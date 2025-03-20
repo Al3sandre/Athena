@@ -46,7 +46,17 @@ const router = useRouter();
 const searchQuery = ref('');
 const selectedCategory = ref('');
 
-const products = computed(() => productStore.products);
+const products = ref([]);
+
+onMounted(async () => {
+    try {
+        await productStore.fetchProducts(); // Recharge les produits depuis l'API
+        products.value = productStore.products; // Met à jour la liste locale des produits
+    } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error);
+    }
+});
+
 const categories = computed(() => categoryStore.categories);
 const isAdmin = computed(() => userStore.getRole() === 'admin');
 
@@ -67,7 +77,6 @@ const getImageUrl = (product) => {
 };
 
 onMounted(() => {
-    productStore.fetchProducts();
     categoryStore.fetchCategories();
 });
 </script>

@@ -36,11 +36,15 @@ export const useProductStore = defineStore('productStore', {
     // ✅ Ajouter un produit via l'API Laravel
     async addProduct(productData) {
       try {
-        const response = await pb.post('/products', productData);
-        this.products.push(response.data); // Ajout localement
+        const response = await pb.post('/products', productData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        this.products.push(response.data);
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de l’ajout du produit:', error);
+        console.error('Erreur lors de l’ajout du produit :', error);
         throw error;
       }
     },

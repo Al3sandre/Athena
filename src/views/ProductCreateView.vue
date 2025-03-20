@@ -164,16 +164,20 @@ const handleSubmit = async () => {
         formData.append('price', price.value);
         formData.append('stock', parseInt(stock.value, 10)); // Convertir en entier
 
-        // Ajouter les catégories sélectionnées comme un tableau d'IDs
-        formData.append('categories', JSON.stringify(selectedCategories.value));
+        // Ajouter les catégories sélectionnées comme des champs individuels
+        selectedCategories.value.forEach((categoryId, index) => {
+            formData.append(`categories[${index}]`, categoryId);
+        });
 
         if (imageFile.value) {
             formData.append('image', imageFile.value);
         }
 
+        console.log('Données envoyées :', Object.fromEntries(formData.entries()));
+
         await productStore.addProduct(formData);
 
-        router.push('/products');
+        router.push('/');
     } catch (error) {
         console.error('Erreur lors de la création du produit:', error);
     }
