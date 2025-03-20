@@ -2,24 +2,20 @@
     <div v-if="user" class="relative">
         <button @click.stop="toggleCart"
             class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
-            Panier ({{ cart.length }})
+            Panier ({{ cartItems.length }})
         </button>
         <transition name="slide-fade">
             <div v-if="isCartOpen" ref="cartWidget"
                 class="absolute top-full right-0 bg-white border border-gray-300 p-4 w-64 mt-2 rounded shadow-lg max-h-64 overflow-y-auto">
                 <ul v-if="!isLoading">
-                    <li v-for="item in cart" :key="item.product_id" class="flex justify-between items-center mb-2">
-                        <div v-if="getProductDetails(item.product_id)" class="flex items-center space-x-2">
-                            <img :src="getImageUrl(getProductDetails(item.product_id))" alt="Image du produit"
-                                class="w-12 h-12 object-cover rounded" />
-                            <div>
-                                <p>{{ getProductDetails(item.product_id).name }}</p>
-                                <input type="number" v-model.number="item.quantity" min="1"
-                                    class="border rounded px-2 py-1 w-16"
-                                    @change="updateQuantity(item.product_id, item.quantity)" />
-                            </div>
+                    <li v-for="item in cartItems" :key="item.id" class="flex justify-between items-center mb-2">
+                        <div>
+                            <p>{{ getProductDetails(item.product_id)?.name || 'Produit inconnu' }}</p>
+                            <input type="number" v-model.number="item.quantity" min="1"
+                                class="border rounded px-2 py-1 w-16"
+                                @change="updateQuantity(item.id, item.quantity)" />
                         </div>
-                        <button @click="removeFromCart(item.product_id)"
+                        <button @click="removeFromCart(item.id)"
                             class="text-red-500 hover:text-red-700 transition duration-200">Retirer</button>
                     </li>
                 </ul>
@@ -32,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useUserStore } from '@/stores/userStore';
 import { useProductStore } from '@/stores/productStore';
@@ -42,7 +38,7 @@ const cartStore = useCartStore();
 const userStore = useUserStore();
 const productStore = useProductStore();
 const router = useRouter();
-const cart = computed(() => cartStore.cart);
+const cartItems = computed(() => cartStore.cartItems);
 const isLoading = computed(() => cartStore.isLoading);
 const isCartOpen = ref(false);
 const user = computed(() => userStore.user);
@@ -52,20 +48,16 @@ const toggleCart = () => {
     isCartOpen.value = !isCartOpen.value;
 };
 
-const removeFromCart = (productId) => {
-    cartStore.removeFromCart(productId);
+const removeFromCart = (cartItemId) => {
+    cartStore.removeFromCart(cartItemId);
 };
 
 const getProductDetails = (productId) => {
     return cartStore.products.find(product => product.id === productId);
 };
 
-const getImageUrl = (product) => {
-    return productStore.getImageUrl(product);
-};
-
-const updateQuantity = (productId, quantity) => {
-    cartStore.updateQuantity(productId, quantity);
+const updateQuantity = (cartItemId, quantity) => {
+    cartStore.updateCartItem(cartItemId, quantity);
 };
 
 const fetchCartData = async () => {

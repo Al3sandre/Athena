@@ -114,14 +114,14 @@ const editableField = ref(null);
 const imageFile = ref(null);
 const fileInput = ref(null);
 const loading = ref(true);
-const quantity = ref(50); // Quantité par défaut
+const quantity = ref(1); // Quantité par défaut
 
 onMounted(async () => {
     try {
         await categoryStore.fetchCategories();
         categories.value = categoryStore.categories;
         product.value = await productStore.fetchProductById(route.params.id);
-        product.value.category = product.value.expand?.category?.id || ''; // Assurez-vous que la catégorie est correctement définie
+        product.value.category = product.value.category || ''; // Assurez-vous que la catégorie est correctement définie
     } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
     } finally {
@@ -190,15 +190,15 @@ const getCategoryName = (categoryId) => {
 
 const addToCart = () => {
     if (quantity.value <= 0) {
-        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 900); // Durée de 5 secondes
+        notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 5000);
         return;
     }
     if (quantity.value > product.value.stock) {
-        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error', 900); // Durée de 5 secondes
+        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error', 5000);
         return;
     }
-    cartStore.addToCart(product.value, quantity.value); // Passez la quantité spécifiée
-    notificationStore.addNotification('Produit ajouté au panier.', 'success', 900); // Durée de 5 secondes
+    cartStore.addToCart(product.value.id, quantity.value);
+    notificationStore.addNotification('Produit ajouté au panier.', 'success', 5000);
 };
 </script>
 

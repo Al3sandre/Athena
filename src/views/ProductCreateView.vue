@@ -14,7 +14,7 @@
             </div>
             <div>
                 <label for="price" class="block mb-2">Prix:</label>
-                <input v-model="price" type="number" id="price" min="0" max="100" step="0.01" required
+                <input v-model="price" type="number" id="price" min="0" step="0.01" required
                     class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
@@ -24,16 +24,16 @@
             </div>
             <div>
                 <label for="category-search" class="block mb-2">Rechercher une catégorie:</label>
-                <input v-model="categorySearchQuery" id="category-search" type="text" @input="searchCategories"
+                <input v-model="categorySearchQuery" id="category-search" type="text"
                     placeholder="Rechercher une catégorie..."
                     class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <ul v-if="categorySearchQuery.length > 0 && filteredCategories.length > 0" class="search-results mt-2">
-                    <li v-for="cat in filteredCategories" :key="cat.id" @dblclick="selectCategory(cat)"
+                <ul v-if="categorySearchQuery && filteredCategories.length > 0" class="search-results mt-2">
+                    <li v-for="cat in filteredCategories" :key="cat.id" @click="selectCategory(cat)"
                         class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                         {{ cat.name }}
                     </li>
                 </ul>
-                <div v-if="categorySearchQuery.length > 0 && filteredCategories.length === 0" class="mt-2">
+                <div v-if="categorySearchQuery && filteredCategories.length === 0" class="mt-2">
                     <button type="button" @click="createCategory"
                         class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200">
                         Créer la catégorie "{{ categorySearchQuery }}"
@@ -73,20 +73,26 @@ const imageFile = ref(null);
 const categories = ref([]);
 const categorySearchQuery = ref('');
 const filteredCategories = computed(() => {
-    return categories.value.filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.value.toLowerCase()));
+    if (!Array.isArray(categories.value)) {
+        return [];
+    }
+    return categories.value.filter(cat =>
+        cat.name.toLowerCase().includes(categorySearchQuery.value.toLowerCase())
+    );
 });
 
 onMounted(async () => {
-    await categoryStore.fetchCategories();
-    categories.value = categoryStore.categories;
+    try {
+        await categoryStore.fetchCategories();
+        categories.value = categoryStore.categories;
+        console.log('Catégories chargées :', categories.value); // Log pour vérifier les données
+    } catch (error) {
+        console.error('Erreur lors de la récupération des catégories:', error);
+    }
 });
 
 const handleFileUpload = (event) => {
     imageFile.value = event.target.files[0];
-};
-
-const searchCategories = () => {
-    // La recherche est déjà gérée par la computed property filteredCategories
 };
 
 const selectCategory = (cat) => {

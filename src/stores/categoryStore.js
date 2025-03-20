@@ -1,26 +1,31 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import pb from '@/api/pocketbase'; // Utilisation de l'instance pb configurée
 
 export const useCategoryStore = defineStore('categoryStore', {
   state: () => ({
-    categories: []
+    categories: [], // Liste des catégories
+    isLoading: false, // Indicateur de chargement
   }),
 
   actions: {
     // ✅ Récupérer toutes les catégories depuis l'API Laravel
     async fetchCategories() {
+      this.isLoading = true;
       try {
-        const response = await axios.get('/api/categories');
-        this.categories = response.data; // Mise à jour de l'état local
+        const response = await pb.get('/categories');
+        this.categories = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error('Erreur lors de la récupération des catégories:', error);
+        this.categories = [];
+      } finally {
+        this.isLoading = false;
       }
     },
 
     // ✅ Ajouter une catégorie via l'API Laravel
     async addCategory(categoryData) {
       try {
-        const response = await axios.post('/api/categories', categoryData);
+        const response = await pb.post('/categories', categoryData);
         this.categories.push(response.data); // Ajout localement
         return response.data;
       } catch (error) {
@@ -32,14 +37,13 @@ export const useCategoryStore = defineStore('categoryStore', {
     // ✅ Modifier une catégorie existante via l'API Laravel
     async updateCategory(categoryId, updatedData) {
       try {
-        const response = await axios.put(`/api/categories/${categoryId}`, updatedData);
+        const response = await pb.put(`/categories/${categoryId}`, updatedData);
         const index = this.categories.findIndex(c => c.id === categoryId);
         if (index !== -1) {
           this.categories[index] = response.data; // Mise à jour locale
         }
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la modification de la catégorie:', error);
         throw error;
       }
     },
@@ -47,10 +51,9 @@ export const useCategoryStore = defineStore('categoryStore', {
     // ✅ Supprimer une catégorie via l'API Laravel
     async deleteCategory(categoryId) {
       try {
-        await axios.delete(`/api/categories/${categoryId}`);
+        await pb.delete(`/categories/${categoryId}`);
         this.categories = this.categories.filter(c => c.id !== categoryId); // Suppression locale
       } catch (error) {
-        console.error('Erreur lors de la suppression de la catégorie:', error);
         throw error;
       }
     },
@@ -58,12 +61,32 @@ export const useCategoryStore = defineStore('categoryStore', {
     // ✅ Récupérer une seule catégorie par ID via l'API Laravel
     async fetchCategoryById(categoryId) {
       try {
-        const response = await axios.get(`/api/categories/${categoryId}`);
+        const response = await pb.get(`/categories/${categoryId}`);
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la récupération de la catégorie:', error);
         return null;
       }
-    }
-  }
+    },
+
+    // ✅ Associer un produit à une catégorie
+    async attachProductToCategory(categoryId, productId) {
+      try {
+        const response = await pb.post(`/categories/${categoryId}/products`, {
+          product_id: productId,
+        });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    // ✅ Dissocier un produit d'une catégorie
+    async detachProductFromCategory(categoryId, productId) {
+      try {
+        await pb.delete(`/categories/${categoryId}/products/${productId}`);
+      } catch (error) {
+        throw error;
+      }
+    },
+  }, // Fin du bloc actions
 });

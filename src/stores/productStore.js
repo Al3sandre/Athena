@@ -1,73 +1,72 @@
 import { defineStore } from 'pinia';
-import pb from '@/api/pocketbase';
+import pb from '@/api/pocketbase'; // Utilisation de l'instance Axios configurée
 
 export const useProductStore = defineStore('productStore', {
   state: () => ({
-    products: [],
+    products: [], // Liste des produits
+    isLoading: false, // Indicateur de chargement
   }),
 
   actions: {
-    // ✅ Récupérer tous les produits depuis PocketBase
+    // ✅ Récupérer tous les produits depuis l'API Laravel
     async fetchProducts() {
+      this.isLoading = true;
       try {
-        this.products = await pb.collection('products').getFullList({
-          expand: 'category' // Assurez-vous que la catégorie est incluse
-        });
+        const response = await pb.get('/products');
+        this.products = Array.isArray(response.data) ? response.data : []; // Assurez-vous que c'est un tableau
       } catch (error) {
         console.error('Erreur lors de la récupération des produits:', error);
+        this.products = []; // Réinitialisez à un tableau vide en cas d'erreur
+      } finally {
+        this.isLoading = false;
       }
     },
 
-    // ✅ Récupérer un produit par ID depuis PocketBase
-    async fetchProductById(id, options = {}) {
+    // ✅ Récupérer un produit par ID depuis l'API Laravel
+    async fetchProductById(productId) {
       try {
-        const product = await pb.collection('products').getOne(id, {
-          expand: 'category', // Assurez-vous que la catégorie est incluse
-          ...options
-        });
-        return product;
+        const response = await pb.get(`/products/${productId}`);
+        return response.data;
       } catch (error) {
-        console.error("Erreur lors de la récupération du produit :", error);
+        console.error('Erreur lors de la récupération du produit:', error);
         throw error;
       }
     },
-    // ✅ Ajouter un produit dans PocketBase
+
+    // ✅ Ajouter un produit via l'API Laravel
     async addProduct(productData) {
       try {
-        let newProduct;
-        if (productData instanceof FormData) {
-          newProduct = await pb.collection('products').create(productData);
-        } else {
-          newProduct = await pb.collection('products').create(productData);
-        }
-        this.products.push(newProduct); // Ajouter à la liste locale
+        const response = await pb.post('/products', productData);
+        this.products.push(response.data); // Ajout localement
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de l’ajout du produit:', error);
         throw error;
       }
     },
 
-    // ✅ Supprimer un produit dans PocketBase
-    async deleteProduct(productId) {
+    // ✅ Modifier un produit via l'API Laravel
+    async updateProduct(productId, updatedData) {
       try {
-        await pb.collection('products').delete(productId);
-        this.products = this.products.filter(p => p.id !== productId);
+        const response = await pb.put(`/products/${productId}`, updatedData);
+        const index = this.products.findIndex(p => p.id === productId);
+        if (index !== -1) {
+          this.products[index] = response.data; // Mise à jour locale
+        }
+        return response.data;
       } catch (error) {
-        console.error('Erreur lors de la suppression du produit:', error);
+        console.error('Erreur lors de la modification du produit:', error);
+        throw error;
       }
     },
 
-    // ✅ Modifier un produit dans PocketBase
-    async updateProduct(id, data) {
+    // ✅ Supprimer un produit via l'API Laravel
+    async deleteProduct(productId) {
       try {
-        const updatedProduct = await pb.collection('products').update(id, data);
-        const index = this.products.findIndex(p => p.id === id);
-        if (index !== -1) {
-          this.products[index] = updatedProduct; // Mettre à jour localement
-        }
-        return updatedProduct; // Retourner le produit mis à jour
+        await pb.delete(`/products/${productId}`);
+        this.products = this.products.filter(p => p.id !== productId); // Suppression locale
       } catch (error) {
-        console.error('Erreur lors de la modification du produit:', error);
+        console.error('Erreur lors de la suppression du produit:', error);
         throw error;
       }
     },
@@ -75,9 +74,9 @@ export const useProductStore = defineStore('productStore', {
     // ✅ Générer l'URL de l'image
     getImageUrl(product) {
       if (product.image) {
-        return pb.files.getURL(product, product.image);
+        return `/storage/${product.image}`; // Assurez-vous que l'URL correspond à votre configuration Laravel
       }
       return 'default-image-url'; // Remplacez par l'URL de l'image par défaut
-    }
-  }
+    },
+  },
 });
