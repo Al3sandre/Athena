@@ -55,6 +55,7 @@ export const useUserStore = defineStore('userStore', {
         this.token = null;
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_id');
+        window.location.href = '/login'; // Redirigez vers la page de connexion
       }
     },
 
@@ -106,7 +107,7 @@ export const useUserStore = defineStore('userStore', {
         this.user = response.data; // Chargez les informations de l'utilisateur
         return true;
       } catch (error) {
-        console.warn('Token invalide ou expiré, déconnexion en cours:', error.response?.data || error.message);
+        console.warn('Token invalide ou expiré:', error.response?.data || error.message);
         this.logout(); // Déconnectez l'utilisateur si le token est invalide
         return false;
       }

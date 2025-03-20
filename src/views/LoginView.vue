@@ -36,7 +36,9 @@ const handleLogin = async () => {
 
   const success = await userStore.login(emailValue, passwordValue);
   if (success) {
-    router.push('/'); // Redirige vers l'accueil après connexion
+    const redirectPath = localStorage.getItem('redirect_after_login') || '/';
+    localStorage.removeItem('redirect_after_login'); // Supprimez la route stockée
+    router.push(redirectPath); // Redirigez vers la route précédente ou l'accueil
   } else {
     console.error('Échec de la connexion');
     error.value = 'Échec de la connexion. Veuillez vérifier vos identifiants.';
