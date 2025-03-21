@@ -24,8 +24,8 @@
                             <div class="flex items-center mt-2">
                                 <input type="number" v-model.number="item.quantity" min="1"
                                     class="border rounded px-2 py-1 w-16"
-                                    @change="updateQuantity(item.product_id, item.quantity)" />
-                                <button @click="removeFromCart(item.product_id)"
+                                    @change="updateQuantity(item.id, item.quantity)" />
+                                <button @click="removeFromCart(item.id)"
                                     class="ml-2 text-red-500 hover:text-red-700 transition duration-200">
                                     Retirer
                                 </button>

@@ -25,7 +25,7 @@ export const useCartStore = defineStore('cartStore', {
         if (response.data.length > 0) {
           this.cartId = response.data[0].id;
           this.cartItems = response.data[0].items.map(item => ({
-            id: item.id,
+            id: item.id, // ID unique de l'entrée dans la table cart_items
             cart_id: item.cart_id,
             product_id: item.product_id,
             quantity: item.quantity,
@@ -62,27 +62,52 @@ export const useCartStore = defineStore('cartStore', {
         if (existingItem) {
           // Si le produit est déjà dans le panier, mettez simplement à jour la quantité
           existingItem.quantity += quantity;
+
+          // Mettez à jour la quantité dans le backend
+          await pb.put(`/cart-items/${existingItem.id}`, { quantity: existingItem.quantity });
         } else {
           // Récupérez les informations complètes du produit depuis le backend
-          const response = await pb.get(`/products/${productId}`);
-          const product = response.data;
+          const productResponse = await pb.get(`/products/${productId}`);
+          const product = productResponse.data;
 
-          // Ajoutez le produit avec ses informations complètes au panier
+          // Ajoutez le produit au backend
+          const response = await pb.post(`/cart-items`, {
+            cart_id: this.cartId, // Assurez-vous que `cartId` est défini
+            product_id: productId,
+            quantity,
+          });
+
+          // Loggez la réponse pour voir l'objet retourné
+          console.log("Réponse de l'API après ajout au panier :", response.data);
+
+          // Ajoutez l'article au panier localement avec l'ID retourné
           this.cartItems.push({
+            id: response.data.id, // ID unique de l'article du panier (retourné par l'API)
             product_id: productId,
             quantity,
             product, // Inclure les détails du produit
           });
         }
       } catch (error) {
-        console.error('Erreur lors de l\'ajout au panier :', error);
+        console.error("Erreur lors de l'ajout au panier :", error);
       }
     },
 
     // ✅ Mettre à jour la quantité d'un article
     async updateCartItem(cartItemId, quantity) {
+      console.log('cartItemId:', cartItemId);
+      console.log('quantity:', quantity);
       try {
-        await pb.put(`/cart-items/${cartItemId}`, { quantity });
+        // Vérifiez que cartItemId est défini
+        if (!cartItemId) {
+          throw new Error("L'ID de l'article du panier est manquant.");
+        }
+
+        // Effectuez la requête PUT pour mettre à jour la quantité
+        const response = await pb.put(`/cart-items/${cartItemId}`, { quantity });
+        console.log("Réponse de la mise à jour :", response.data);
+
+        // Mettez à jour localement la quantité dans le store
         const item = this.cartItems.find(item => item.id === cartItemId);
         if (item) {
           item.quantity = quantity;
@@ -93,14 +118,14 @@ export const useCartStore = defineStore('cartStore', {
     },
 
     // ✅ Supprimer un article du panier
-
-    async removeFromCart(productId) {
+    async removeFromCart(cartItemId) {
       try {
-        // Supprimez l'article du backend si nécessaire
-        await pb.delete(`/cart-items/${productId}`);
+        // Supprimez l'article du backend
+        await pb.delete(`/cart-items/${cartItemId}`);
+        console.log(`Article avec l'ID ${cartItemId} supprimé du panier.`);
 
         // Supprimez l'article localement
-        this.cartItems = this.cartItems.filter(item => item.product_id !== productId);
+        this.cartItems = this.cartItems.filter(item => item.id !== cartItemId);
       } catch (error) {
         console.error("Erreur lors de la suppression de l'article du panier :", error);
       }
