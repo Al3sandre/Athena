@@ -207,7 +207,10 @@ const goBack = () => {
 };
 
 const getImageUrl = (product) => {
-    return productStore.getImageUrl(product);
+    if (!product.image) {
+        return '/placeholder-image.png'; // Image par défaut si aucune image n'est disponible
+    }
+    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${product.image}`;
 };
 
 const getCategoryName = (categoryId) => {

@@ -71,7 +71,6 @@ onMounted(async () => {
         console.error('Erreur lors du chargement des produits:', error);
     }
     categoryStore.fetchCategories();
-    console.log('products', products.value);
 });
 
 // Réinitialiser le filtre de catégorie si une recherche est effectuée

@@ -52,7 +52,6 @@ export const useProductStore = defineStore('productStore', {
     // ✅ Modifier un produit via l'API Laravel
     async updateProduct(productId, data) {
       try {
-        console.log('Données envoyées :', data instanceof FormData ? Array.from(data.entries()) : data);
         const response = await pb.post(`/products/${productId}?_method=PUT`, data, {
           headers: {
             'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
