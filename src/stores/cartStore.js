@@ -48,7 +48,6 @@ export const useCartStore = defineStore('cartStore', {
         const response = await pb.post(`/carts`, { user_id: userId });
         this.cartId = response.data.id;
         this.cartItems = [];
-        console.log("Nouveau panier créé avec l'ID :", this.cartId);
       } catch (error) {
         console.error("Erreur lors de la création du panier :", error);
       }
@@ -78,7 +77,6 @@ export const useCartStore = defineStore('cartStore', {
           });
 
           // Loggez la réponse pour voir l'objet retourné
-          console.log("Réponse de l'API après ajout au panier :", response.data);
 
           // Ajoutez l'article au panier localement avec l'ID retourné
           this.cartItems.push({
@@ -95,8 +93,6 @@ export const useCartStore = defineStore('cartStore', {
 
     // ✅ Mettre à jour la quantité d'un article
     async updateCartItem(cartItemId, quantity) {
-      console.log('cartItemId:', cartItemId);
-      console.log('quantity:', quantity);
       try {
         // Vérifiez que cartItemId est défini
         if (!cartItemId) {
@@ -105,7 +101,6 @@ export const useCartStore = defineStore('cartStore', {
 
         // Effectuez la requête PUT pour mettre à jour la quantité
         const response = await pb.put(`/cart-items/${cartItemId}`, { quantity });
-        console.log("Réponse de la mise à jour :", response.data);
 
         // Mettez à jour localement la quantité dans le store
         const item = this.cartItems.find(item => item.id === cartItemId);
@@ -122,7 +117,6 @@ export const useCartStore = defineStore('cartStore', {
       try {
         // Supprimez l'article du backend
         await pb.delete(`/cart-items/${cartItemId}`);
-        console.log(`Article avec l'ID ${cartItemId} supprimé du panier.`);
 
         // Supprimez l'article localement
         this.cartItems = this.cartItems.filter(item => item.id !== cartItemId);

@@ -20,6 +20,12 @@ export const useOrderStore = defineStore('orderStore', {
         const response = await pb.get('/orders', {
           params: { page, perPage },
         });
+
+        // Vérifiez que les métadonnées existent
+        if (!response.meta) {
+          throw new Error('Les métadonnées de la pagination sont manquantes.');
+        }
+
         this.orders = response.data;
         this.pagination = {
           page: response.meta.current_page,
@@ -29,6 +35,7 @@ export const useOrderStore = defineStore('orderStore', {
         };
       } catch (error) {
         console.error('Erreur lors de la récupération des commandes:', error);
+        throw error;
       }
     },
 
@@ -45,6 +52,7 @@ export const useOrderStore = defineStore('orderStore', {
 
     // ✅ Créer une commande
     async createOrder(orderData) {
+      console.log(orderData)
       try {
         const response = await pb.post('/orders', orderData);
         this.orders.push(response.data);

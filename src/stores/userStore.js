@@ -12,14 +12,14 @@ export const useUserStore = defineStore('userStore', {
     // ✅ Connexion de l'utilisateur
     async login(email, password) {
       try {
+        console.log('Tentative de connexion avec:', { email, password });
         const response = await pb.post('/login', { email, password });
 
         this.token = response.data.access_token;
         localStorage.setItem('auth_token', this.token);
 
-        // Stockez les informations de l'utilisateur, y compris son ID
         this.user = response.data.user;
-        localStorage.setItem('user_id', this.user.id); // Stockez l'ID de l'utilisateur
+        localStorage.setItem('user_id', this.user.id);
         return true;
       } catch (error) {
         console.error('Erreur de connexion:', error.response?.data || error.message);
@@ -29,34 +29,14 @@ export const useUserStore = defineStore('userStore', {
 
     // ✅ Déconnexion de l'utilisateur
     async logout() {
-      if (!this.token) {
-        console.warn('Aucun token trouvé, déconnexion inutile.');
-        this.user = null;
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_id');
-        return;
-      }
+      this.user = null;
+      this.token = null;
 
-      try {
-        await pb.post('/logout', {}, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        });
-        console.log('Déconnexion réussie.');
-      } catch (error) {
-        if (error.response?.status === 401) {
-          console.warn('Token invalide ou déjà expiré.');
-        } else {
-          console.error('Erreur de déconnexion:', error.response?.data || error.message);
-        }
-      } finally {
-        this.user = null;
-        this.token = null;
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_id');
-        window.location.href = '/login'; // Redirigez vers la page de connexion
-      }
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_id');
+
+      console.log('Déconnexion réussie.');
+      window.location.href = '/login'; // Redirigez vers la page de connexion
     },
 
     // ✅ Charger les informations de l'utilisateur connecté
@@ -93,19 +73,12 @@ export const useUserStore = defineStore('userStore', {
       }
 
       try {
-        const userId = this.user?.id || localStorage.getItem('user_id');
-        if (!userId) {
-          console.warn('Aucun ID utilisateur trouvé.');
-          return false;
-        }
-
-        const response = await pb.get(`/users/${userId}`, {
+        const response = await pb.get('/verify-token', {
           headers: {
             Authorization: `Bearer ${this.token}`,
           },
         });
-        this.user = response.data; // Chargez les informations de l'utilisateur
-        return true;
+        return true; // Le token est valide
       } catch (error) {
         console.warn('Token invalide ou expiré:', error.response?.data || error.message);
         this.logout(); // Déconnectez l'utilisateur si le token est invalide
@@ -115,6 +88,11 @@ export const useUserStore = defineStore('userStore', {
 
     // ✅ Récupérer tous les utilisateurs
     async fetchAllUsers() {
+      if (!this.token) {
+        console.error('Aucun token trouvé. Veuillez vous connecter.');
+        return [];
+      }
+
       try {
         const response = await pb.get('/users', {
           headers: {
@@ -124,6 +102,10 @@ export const useUserStore = defineStore('userStore', {
         this.users = response.data;
         return response.data;
       } catch (error) {
+        if (error.response?.status === 401) {
+          console.warn('Token invalide ou expiré. Déconnexion en cours...');
+          this.logout(); // Déconnectez l'utilisateur si le token est invalide
+        }
         console.error('Erreur lors de la récupération des utilisateurs:', error.response?.data || error.message);
         return [];
       }
@@ -204,4 +186,4 @@ export const useUserStore = defineStore('userStore', {
       return this.getRole() === 'admin';
     },
   },
-});
+}); // Assurez-vous que cette accolade fermante est correcte
