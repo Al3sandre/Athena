@@ -1,99 +1,128 @@
 <template>
-    <div class="p-4">
-        <h1 class="text-2xl font-bold mb-4">Détails du Produit</h1>
-        <div v-if="!loading">
-            <div v-if="product">
-                <div v-if="isAdmin">
-                    <!-- Champs d'édition pour les administrateurs -->
-                    <div @dblclick="editField('name')" class="mb-4">
-                        <label for="name" class="block mb-2">Nom :</label>
-                        <input v-if="editableField === 'name'" v-model="product.name" id="name" type="text"
-                            @blur="saveField"
-                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <span v-else>{{ product.name }}</span>
-                    </div>
-
-                    <div @dblclick="editField('description')" class="mb-4">
-                        <label for="description" class="block mb-2">Description :</label>
-                        <textarea v-if="editableField === 'description'" v-model="product.description" id="description"
-                            @blur="saveField"
-                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                        <span v-else>{{ product.description }}</span>
-                    </div>
-
-                    <div @dblclick="editField('price')" class="mb-4">
-                        <label for="price" class="block mb-2">Prix :</label>
-                        <input v-if="editableField === 'price'" v-model="product.price" id="price" type="number"
-                            step="0.01" @blur="saveField"
-                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <span v-else>{{ product.price }}€</span>
-                    </div>
-
-                    <div @dblclick="editField('stock')" class="mb-4">
-                        <label for="stock" class="block mb-2">Stock :</label>
-                        <input v-if="editableField === 'stock'" v-model="product.stock" id="stock" type="number"
-                            @blur="saveField"
-                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <span v-else>{{ product.stock }}</span>
-                    </div>
-
-                    <div @dblclick="editField('category')" class="mb-4">
-                        <label for="category" class="block mb-2">Catégories :</label>
-                        <div v-if="editableField === 'category'">
+    <div class="p-6 bg-gray-100 min-h-screen">
+        <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+            <h1 class="text-3xl font-bold mb-6 text-gray-800">Détails du Produit</h1>
+            <div v-if="!loading">
+                <div v-if="product">
+                    <div v-if="isAdmin">
+                        <!-- Champs d'édition pour les administrateurs -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <button v-for="category in categories" :key="category.id"
-                                    @click="toggleCategorySelection(category.id)"
-                                    :class="{ 'bg-blue-500 text-white': product.categories.includes(category.id) }"
-                                    class="px-4 py-2 border rounded mr-2 mb-2">
-                                    {{ category.name }}
-                                </button>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Nom :</label>
+                                <div @dblclick="editField('name')" class="mt-1">
+                                    <input v-if="editableField === 'name'" v-model="product.name" id="name" type="text"
+                                        @blur="saveField"
+                                        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    <span v-else class="block text-gray-800">{{ product.name }}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description
+                                    :</label>
+                                <div @dblclick="editField('description')" class="mt-1">
+                                    <textarea v-if="editableField === 'description'" v-model="product.description"
+                                        id="description" @blur="saveField"
+                                        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                    <span v-else class="block text-gray-800">{{ product.description }}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="price" class="block text-sm font-medium text-gray-700">Prix :</label>
+                                <div @dblclick="editField('price')" class="mt-1">
+                                    <input v-if="editableField === 'price'" v-model="product.price" id="price"
+                                        type="number" step="0.01" @blur="saveField"
+                                        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    <span v-else class="block text-gray-800">{{ product.price }}€</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="stock" class="block text-sm font-medium text-gray-700">Stock :</label>
+                                <div @dblclick="editField('stock')" class="mt-1">
+                                    <input v-if="editableField === 'stock'" v-model="product.stock" id="stock"
+                                        type="number" @blur="saveField"
+                                        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    <span v-else class="block text-gray-800">{{ product.stock }}</span>
+                                </div>
                             </div>
                         </div>
-                        <span v-else>
-                            {{ product.categories && product.categories.length > 0
-                                ? getSelectedCategoryNames(product.categories).join(', ')
-                                : 'Non spécifiées' }}
-                        </span>
+
+                        <div class="mt-6">
+                            <label for="category" class="block text-sm font-medium text-gray-700">Catégories :</label>
+                            <div v-if="editableField === 'category'" class="mt-2">
+                                <div class="flex flex-wrap gap-2">
+                                    <button v-for="category in categories" :key="category.id"
+                                        @click="toggleCategorySelection(category.id)"
+                                        :class="{ 'bg-blue-500 text-white': product.categories.includes(category.id) }"
+                                        class="px-4 py-2 border rounded hover:bg-blue-100 transition">
+                                        {{ category.name }}
+                                    </button>
+                                </div>
+                            </div>
+                            <span v-else class="block mt-2 text-gray-800">
+                                {{ product.categories && product.categories.length > 0
+                                    ? getSelectedCategoryNames(product.categories).join(', ')
+                                    : 'Non spécifiées' }}
+                            </span>
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700">Image :</label>
+                            <div class="mt-2">
+                                <img :src="getImageUrl(product)" alt="Image du produit" @click="triggerFileInput"
+                                    class="cursor-pointer w-32 h-32 object-cover rounded shadow-md" />
+                                <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-4">
+                            <button @click="saveChanges"
+                                class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition duration-200">
+                                Enregistrer
+                            </button>
+                            <button @click="goBack"
+                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition duration-200">
+                                Retour
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="mb-4">
-                        <img :src="getImageUrl(product)" alt="Image du produit" @click="triggerFileInput"
-                            class="cursor-pointer w-32 h-32 object-cover rounded" />
-                        <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
+                    <div v-else>
+                        <!-- Affichage des détails du produit pour les utilisateurs -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <p><strong>Nom :</strong> {{ product.name }}</p>
+                            <p><strong>Description :</strong> {{ product.description }}</p>
+                            <p><strong>Prix :</strong> {{ product.price }}€</p>
+                            <p><strong>Stock :</strong> {{ product.stock }}</p>
+                            <p><strong>Catégories :</strong>
+                                {{ product.categories && product.categories.length > 0
+                                    ? getSelectedCategoryNames(product.categories).join(', ')
+                                    : 'Non spécifiées' }}
+                            </p>
+                        </div>
+                        <div class="mt-6">
+                            <img :src="getImageUrl(product)" alt="Image du produit"
+                                class="w-32 h-32 object-cover rounded shadow-md" />
+                        </div>
                     </div>
 
-                    <button @click="saveChanges"
-                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200">Enregistrer</button>
+                    <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
+                    <div class="mt-6">
+                        <label for="quantity" class="block text-sm font-medium text-gray-700">Quantité :</label>
+                        <input v-model.number="quantity" id="quantity" type="number" min="1"
+                            class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <button @click="addToCart"
+                            class="mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition duration-200">
+                            Ajouter au panier
+                        </button>
+                    </div>
                 </div>
-                <div v-else>
-                    <!-- Affichage des détails du produit pour les utilisateurs -->
-                    <p class="mb-2"><strong>Nom :</strong> {{ product.name }}</p>
-                    <p class="mb-2"><strong>Description :</strong> {{ product.description }}</p>
-                    <p class="mb-2"><strong>Prix :</strong> {{ product.price }}€</p>
-                    <p class="mb-2"><strong>Stock :</strong> {{ product.stock }}</p>
-                    <p class="mb-2"><strong>Catégories :</strong>
-                        {{ product.categories && product.categories.length > 0
-                            ? getSelectedCategoryNames(product.categories).join(', ')
-                            : 'Non spécifiées' }}
-                    </p>
-                    <img :src="getImageUrl(product)" alt="Image du produit" class="w-32 h-32 object-cover rounded" />
-                </div>
-                <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
-                <div class="mt-4">
-                    <label for="quantity" class="block mb-2">Quantité :</label>
-                    <input v-model.number="quantity" id="quantity" type="number" min="1"
-                        class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    <button @click="addToCart"
-                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">Ajouter
-                        au panier</button>
-                </div>
-                <button @click="goBack"
-                    class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-200">Retour
-                    à la liste des produits</button>
+                <p v-else class="text-gray-500">Produit introuvable</p>
             </div>
-            <p v-else>Produit introuvable</p>
+            <p v-else class="text-gray-500">Chargement...</p>
         </div>
-        <p v-else>Chargement...</p>
     </div>
 </template>
 
