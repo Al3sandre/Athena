@@ -24,8 +24,15 @@ export const useCartStore = defineStore('cartStore', {
         });
         if (response.data.length > 0) {
           this.cartId = response.data[0].id;
-          await this.fetchCartItems();
+          this.cartItems = response.data[0].items.map(item => ({
+            id: item.id,
+            cart_id: item.cart_id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            product: item.product || null, // Inclure les données du produit si disponibles
+          }));
         } else {
+          console.warn("Aucun panier trouvé. Création d'un nouveau panier.");
           await this.createCart(userStore.user.id);
         }
       } catch (error) {
@@ -35,28 +42,13 @@ export const useCartStore = defineStore('cartStore', {
       }
     },
 
-    // ✅ Récupérer les articles du panier
-    async fetchCartItems() {
-      if (!this.cartId) {
-        console.error("Aucun panier trouvé.");
-        return;
-      }
-      try {
-        const response = await pb.get(`/cart-items`, {
-          params: { cart_id: this.cartId },
-        });
-        this.cartItems = response.data;
-      } catch (error) {
-        console.error("Erreur lors de la récupération des articles du panier :", error);
-      }
-    },
-
     // ✅ Créer un nouveau panier
     async createCart(userId) {
       try {
         const response = await pb.post(`/carts`, { user_id: userId });
         this.cartId = response.data.id;
         this.cartItems = [];
+        console.log("Nouveau panier créé avec l'ID :", this.cartId);
       } catch (error) {
         console.error("Erreur lors de la création du panier :", error);
       }
@@ -65,8 +57,9 @@ export const useCartStore = defineStore('cartStore', {
     // ✅ Ajouter un article au panier
     async addToCart(productId, quantity) {
       if (!this.cartId) {
-        console.error("Aucun panier trouvé.");
-        return;
+        console.warn("Aucun panier trouvé. Création d'un nouveau panier.");
+        const userStore = useUserStore();
+        await this.createCart(userStore.user.id);
       }
       try {
         const existingItem = this.cartItems.find(item => item.product_id === productId);
@@ -78,7 +71,13 @@ export const useCartStore = defineStore('cartStore', {
             product_id: productId,
             quantity,
           });
-          this.cartItems.push(response.data);
+          this.cartItems.push({
+            id: response.data.id,
+            cart_id: response.data.cart_id,
+            product_id: response.data.product_id,
+            quantity: response.data.quantity,
+            product: response.data.product || null,
+          });
         }
       } catch (error) {
         console.error("Erreur lors de l'ajout au panier :", error);
@@ -119,5 +118,7 @@ export const useCartStore = defineStore('cartStore', {
         console.error("Erreur lors du vidage du panier :", error);
       }
     },
+
+
   },
 });
