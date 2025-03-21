@@ -114,14 +114,10 @@ export const useUserStore = defineStore('userStore', {
     // ✅ Récupérer un utilisateur par ID
     async fetchUserById(userId) {
       try {
-        const response = await pb.get(`/users/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        });
+        const response = await pb.get(`/users/${userId}`);
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la récupération de l’utilisateur:', error.response?.data || error.message);
+        console.error('Erreur lors de la récupération de l\'utilisateur :', error);
         throw error;
       }
     },

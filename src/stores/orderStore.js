@@ -22,19 +22,26 @@ export const useOrderStore = defineStore('orderStore', {
         });
 
         // Vérifiez que les métadonnées existent
-        if (!response.meta) {
-          throw new Error('Les métadonnées de la pagination sont manquantes.');
+        if (!response.data.meta) {
+          this.pagination = {
+            page,
+            perPage,
+            totalPages: 1,
+            totalItems: 0,
+          };
+          this.orders = response.data.data || [];
+          return;
         }
 
-        this.orders = response.data;
+        this.orders = response.data.data;
         this.pagination = {
-          page: response.meta.current_page,
-          perPage: response.meta.per_page,
-          totalPages: response.meta.last_page,
-          totalItems: response.meta.total,
+          page: response.data.meta.current_page || 1,
+          perPage: response.data.meta.per_page || 30,
+          totalPages: response.data.meta.last_page || 1,
+          totalItems: response.data.meta.total || 0,
         };
       } catch (error) {
-        console.error('Erreur lors de la récupération des commandes:', error);
+        console.error('Erreur lors de la récupération des commandes:', error.response?.data || error.message);
         throw error;
       }
     },
@@ -46,19 +53,19 @@ export const useOrderStore = defineStore('orderStore', {
         this.order = response.data;
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la récupération de la commande:', error);
+        console.error('Erreur lors de la récupération de la commande:', error.response?.data || error.message);
+        throw error;
       }
     },
 
     // ✅ Créer une commande
     async createOrder(orderData) {
-      console.log(orderData)
       try {
         const response = await pb.post('/orders', orderData);
         this.orders.push(response.data);
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la création de la commande:', error);
+        console.error('Erreur lors de la création de la commande:', error.response?.data || error.message);
         throw error;
       }
     },
@@ -73,7 +80,7 @@ export const useOrderStore = defineStore('orderStore', {
         }
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la mise à jour de la commande:', error);
+        console.error('Erreur lors de la mise à jour de la commande:', error.response?.data || error.message);
         throw error;
       }
     },
@@ -84,7 +91,8 @@ export const useOrderStore = defineStore('orderStore', {
         await pb.delete(`/orders/${orderId}`);
         this.orders = this.orders.filter(order => order.id !== orderId);
       } catch (error) {
-        console.error('Erreur lors de la suppression de la commande:', error);
+        console.error('Erreur lors de la suppression de la commande:', error.response?.data || error.message);
+        throw error;
       }
     },
 
@@ -133,6 +141,18 @@ export const useOrderStore = defineStore('orderStore', {
       } catch (error) {
         console.error('Erreur lors de la suppression de l\'item de la commande:', error);
         throw error;
+      }
+    },
+
+    // ✅ Récupérer les détails d'une commande
+    async fetchOrderDetails() {
+      try {
+        this.order = await this.fetchOrderById(route.params.id);
+        this.orderItems = await this.fetchOrderItems(this.order.id);
+        this.userName = this.order.user?.name || 'Utilisateur inconnu';
+      } catch (error) {
+        console.error('Erreur lors du chargement des détails de la commande :', error);
+        this.errorMessage = 'Impossible de charger les détails de la commande.';
       }
     },
   },
