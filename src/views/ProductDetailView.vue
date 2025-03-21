@@ -163,6 +163,7 @@ onMounted(async () => {
     } finally {
         loading.value = false;
     }
+
 });
 
 const toggleCategorySelection = (categoryId) => {

@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
 import pb from '@/api/pocketbase';
-import { useUserStore } from '@/stores/userStore';
-import { useCartStore } from '@/stores/cartStore';
 
 export const useOrderStore = defineStore('orderStore', {
   state: () => ({
@@ -11,103 +9,123 @@ export const useOrderStore = defineStore('orderStore', {
       page: 1,
       perPage: 30,
       totalPages: 1,
-      totalItems: 0
-    }
+      totalItems: 0,
+    },
   }),
 
   actions: {
-    // ✅ Récupérer toutes les commandes avec pagination et tri
-    async fetchOrders(page = 1, perPage = 30, sort = 'status') {
+    // ✅ Récupérer toutes les commandes
+    async fetchOrders(page = 1, perPage = 30) {
       try {
-        const userStore = useUserStore();
-        const userRole = userStore.getRole();
-        const userId = userStore.getUserId();
-
-        let filter = '';
-        if (userRole === 'shop') {
-          filter = `user_id='${userId}'`;
-        }
-
-        const response = await pb.collection('orders').getList(page, perPage, { sort, filter });
-        this.orders = response.items;
+        const response = await pb.get('/orders', {
+          params: { page, perPage },
+        });
+        this.orders = response.data;
         this.pagination = {
-          page: response.page,
-          perPage: response.perPage,
-          totalPages: response.totalPages,
-          totalItems: response.totalItems
+          page: response.meta.current_page,
+          perPage: response.meta.per_page,
+          totalPages: response.meta.last_page,
+          totalItems: response.meta.total,
         };
       } catch (error) {
         console.error('Erreur lors de la récupération des commandes:', error);
       }
     },
 
-    // ✅ Récupérer les commandes spécifiques à un utilisateur avec pagination et tri
-    async fetchOrdersByUserId(userId, page = 1, perPage = 30, sort = 'status') {
-      try {
-        const filter = `user_id='${userId}'`;
-        const response = await pb.collection('orders').getList(page, perPage, { sort, filter });
-        this.orders = response.items;
-        this.pagination = {
-          page: response.page,
-          perPage: response.perPage,
-          totalPages: response.totalPages,
-          totalItems: response.totalItems
-        };
-      } catch (error) {
-        console.error('Erreur lors de la récupération des commandes:', error);
-      }
-    },
-
-    // ✅ Récupérer les détails d'une commande par ID
+    // ✅ Récupérer une commande par ID
     async fetchOrderById(orderId) {
       try {
-        const response = await pb.collection('orders').getOne(orderId);
-        this.order = response;
-        return response;
+        const response = await pb.get(`/orders/${orderId}`);
+        this.order = response.data;
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération de la commande:', error);
       }
     },
 
-    // ✅ Mettre à jour une commande
-    async updateOrder(orderId, data) {
+    // ✅ Créer une commande
+    async createOrder(orderData) {
       try {
-        const response = await pb.collection('orders').update(orderId, data);
-        return response;
+        const response = await pb.post('/orders', orderData);
+        this.orders.push(response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Erreur lors de la création de la commande:', error);
+        throw error;
+      }
+    },
+
+    // ✅ Mettre à jour une commande
+    async updateOrder(orderId, updatedData) {
+      try {
+        const response = await pb.put(`/orders/${orderId}`, updatedData);
+        const index = this.orders.findIndex(order => order.id === orderId);
+        if (index !== -1) {
+          this.orders[index] = response.data;
+        }
+        return response.data;
       } catch (error) {
         console.error('Erreur lors de la mise à jour de la commande:', error);
         throw error;
       }
     },
 
-    // ✅ Créer une nouvelle commande
-    async placeOrder() {
-      const userStore = useUserStore();
-      const cartStore = useCartStore();
-      const userId = userStore.getUserId();
-
+    // ✅ Supprimer une commande
+    async deleteOrder(orderId) {
       try {
-        const totalAmount = cartStore.cart.reduce((total, item) => {
-          const product = cartStore.products.find(p => p.id === item.product_id);
-          return total + (product.price * item.quantity);
-        }, 0);
-
-        const order = {
-          user_id: userId,
-          product: cartStore.cart,
-          total_price: totalAmount,
-          status: 'en cours',
-        };
-
-        const response = await pb.collection('orders').create(order);
-        console.log('Commande créée:', response);
-
-        // Vider le panier après la commande
-        await cartStore.clearCart();
+        await pb.delete(`/orders/${orderId}`);
+        this.orders = this.orders.filter(order => order.id !== orderId);
       } catch (error) {
-        console.error('Erreur lors de la création de la commande:', error);
+        console.error('Erreur lors de la suppression de la commande:', error);
+      }
+    },
+
+    // ✅ Récupérer les items d'une commande
+    async fetchOrderItems(orderId) {
+      try {
+        const response = await pb.get(`/order-items`, {
+          params: { order_id: orderId },
+        });
+        return response.data; // Retourne les items de la commande
+      } catch (error) {
+        console.error('Erreur lors de la récupération des items de la commande:', error);
         throw error;
       }
-    }
-  }
+    },
+
+    // ✅ Ajouter un item à une commande
+    async addOrderItem(orderId, itemData) {
+      try {
+        const response = await pb.post(`/order-items`, {
+          ...itemData,
+          order_id: orderId,
+        });
+        return response.data; // Retourne l'item ajouté
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout d\'un item à la commande:', error);
+        throw error;
+      }
+    },
+
+    // ✅ Mettre à jour un item d'une commande
+    async updateOrderItem(itemId, updatedData) {
+      try {
+        const response = await pb.put(`/order-items/${itemId}`, updatedData);
+        return response.data; // Retourne l'item mis à jour
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'item de la commande:', error);
+        throw error;
+      }
+    },
+
+    // ✅ Supprimer un item d'une commande
+    async deleteOrderItem(itemId) {
+      try {
+        await pb.delete(`/order-items/${itemId}`);
+      } catch (error) {
+        console.error('Erreur lors de la suppression de l\'item de la commande:', error);
+        throw error;
+      }
+    },
+  },
 });

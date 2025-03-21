@@ -92,9 +92,11 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useUserStore } from '@/stores/userStore';
 import { useRoute } from 'vue-router';
+import { useOrderStore } from '@/stores/orderStore';
 
 const cartStore = useCartStore();
 const userStore = useUserStore();
+const orderStore = useOrderStore();
 const isCartOpen = ref(false);
 const route = useRoute();
 
@@ -119,7 +121,7 @@ const getImageUrl = (product) => {
     if (!product?.image) {
         return '/placeholder-image.png'; // Image par défaut si aucune image n'est disponible
     }
-    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${product.image}`;
+    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${product.image}?t=${Date.now()}`;
 };
 
 // Surveiller les changements dans userStore.user
@@ -135,14 +137,25 @@ watch(
     { immediate: true } // Exécute immédiatement le watcher si userStore.user est déjà défini
 );
 
+// Surveiller les changements dans cartItems
+watch(
+    () => cartItems.value,
+    (newItems) => {
+        newItems.forEach(item => {
+            item.product.image = item.product.image; // Force la réactivité
+        });
+    },
+    { deep: true }
+);
+
 // Appeler fetchCart si l'utilisateur est déjà connecté au moment du montage
 onMounted(async () => {
     if (userStore.user && route.name !== 'login') {
         if (!cartStore.cartId) {
             await cartStore.fetchCart();
         }
+        await cartStore.syncCartItems(); // Synchronise les informations des produits
     }
-    console.log(cartItems.value);
 });
 
 const formatCurrency = (amount) => {
@@ -153,9 +166,28 @@ const clearCart = () => {
     cartStore.clearCart();
 };
 
-const validateCart = () => {
-    alert('Commande validée !'); // Remplacez par une logique réelle pour passer commande
-    clearCart(); // Effacer le panier après validation
+const validateCart = async () => {
+    try {
+        const orderData = {
+            user_id: cartStore.userId, // ID de l'utilisateur connecté
+            total_amount: cartStore.cartItems.reduce(
+                (total, item) => total + item.quantity * item.product.price,
+                0
+            ),
+            status: 'en cours',
+            items: cartStore.cartItems.map(item => ({
+                product_id: item.product.id,
+                quantity: item.quantity,
+                price: item.product.price,
+            })),
+        };
+
+        await orderStore.createOrder(orderData);
+        cartStore.clearCart(); // Vider le panier après validation
+        alert('Commande validée avec succès !');
+    } catch (error) {
+        console.error('Erreur lors de la validation du panier:', error);
+    }
 };
 
 const totalCartAmount = computed(() =>

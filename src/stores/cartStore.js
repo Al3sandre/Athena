@@ -56,31 +56,26 @@ export const useCartStore = defineStore('cartStore', {
 
     // ✅ Ajouter un article au panier
     async addToCart(productId, quantity) {
-      if (!this.cartId) {
-        console.warn("Aucun panier trouvé. Création d'un nouveau panier.");
-        const userStore = useUserStore();
-        await this.createCart(userStore.user.id);
-      }
       try {
+        // Vérifiez si le produit est déjà dans le panier
         const existingItem = this.cartItems.find(item => item.product_id === productId);
         if (existingItem) {
-          await this.updateCartItem(existingItem.id, existingItem.quantity + quantity);
+          // Si le produit est déjà dans le panier, mettez simplement à jour la quantité
+          existingItem.quantity += quantity;
         } else {
-          const response = await pb.post(`/cart-items`, {
-            cart_id: this.cartId,
+          // Récupérez les informations complètes du produit depuis le backend
+          const response = await pb.get(`/products/${productId}`);
+          const product = response.data;
+
+          // Ajoutez le produit avec ses informations complètes au panier
+          this.cartItems.push({
             product_id: productId,
             quantity,
-          });
-          this.cartItems.push({
-            id: response.data.id,
-            cart_id: response.data.cart_id,
-            product_id: response.data.product_id,
-            quantity: response.data.quantity,
-            product: response.data.product || null,
+            product, // Inclure les détails du produit
           });
         }
       } catch (error) {
-        console.error("Erreur lors de l'ajout au panier :", error);
+        console.error('Erreur lors de l\'ajout au panier :', error);
       }
     },
 
@@ -98,10 +93,14 @@ export const useCartStore = defineStore('cartStore', {
     },
 
     // ✅ Supprimer un article du panier
-    async removeFromCart(cartItemId) {
+
+    async removeFromCart(productId) {
       try {
-        await pb.delete(`/cart-items/${cartItemId}`);
-        this.cartItems = this.cartItems.filter(item => item.id !== cartItemId);
+        // Supprimez l'article du backend si nécessaire
+        await pb.delete(`/cart-items/${productId}`);
+
+        // Supprimez l'article localement
+        this.cartItems = this.cartItems.filter(item => item.product_id !== productId);
       } catch (error) {
         console.error("Erreur lors de la suppression de l'article du panier :", error);
       }
@@ -119,6 +118,22 @@ export const useCartStore = defineStore('cartStore', {
       }
     },
 
-
+    // ✅ Synchroniser les items du panier
+    async syncCartItems() {
+      try {
+        const updatedItems = await Promise.all(
+          this.cartItems.map(async (item) => {
+            const response = await pb.get(`/products/${item.product_id}`);
+            return {
+              ...item,
+              product: response.data, // Met à jour les informations du produit
+            };
+          })
+        );
+        this.cartItems = updatedItems; // Met à jour le panier avec les nouvelles données
+      } catch (error) {
+        console.error('Erreur lors de la synchronisation des items du panier:', error);
+      }
+    },
   },
 });
