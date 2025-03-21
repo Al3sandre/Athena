@@ -38,18 +38,22 @@
                     </div>
 
                     <div @dblclick="editField('category')" class="mb-4">
-                        <label for="category" class="block mb-2">Catégorie :</label>
+                        <label for="category" class="block mb-2">Catégories :</label>
                         <div v-if="editableField === 'category'">
                             <div>
                                 <button v-for="category in categories" :key="category.id"
-                                    @click="selectCategory(category.id)"
-                                    :class="{ 'bg-blue-500 text-white': product.category === category.id }"
+                                    @click="toggleCategorySelection(category.id)"
+                                    :class="{ 'bg-blue-500 text-white': product.categories.includes(category.id) }"
                                     class="px-4 py-2 border rounded mr-2 mb-2">
                                     {{ category.name }}
                                 </button>
                             </div>
                         </div>
-                        <span v-else>{{ getCategoryName(product.category) || 'Non spécifiée' }}</span>
+                        <span v-else>
+                            {{ product.categories && product.categories.length > 0
+                                ? getSelectedCategoryNames(product.categories).join(', ')
+                                : 'Non spécifiées' }}
+                        </span>
                     </div>
 
                     <div class="mb-4">
@@ -67,8 +71,11 @@
                     <p class="mb-2"><strong>Description :</strong> {{ product.description }}</p>
                     <p class="mb-2"><strong>Prix :</strong> {{ product.price }}€</p>
                     <p class="mb-2"><strong>Stock :</strong> {{ product.stock }}</p>
-                    <p class="mb-2"><strong>Catégorie :</strong> {{ getCategoryName(product.category) || 'Non spécifiée'
-                        }}</p>
+                    <p class="mb-2"><strong>Catégories :</strong>
+                        {{ product.categories && product.categories.length > 0
+                            ? getSelectedCategoryNames(product.categories).join(', ')
+                            : 'Non spécifiées' }}
+                    </p>
                     <img :src="getImageUrl(product)" alt="Image du produit" class="w-32 h-32 object-cover rounded" />
                 </div>
                 <!-- Champ de saisie pour la quantité et bouton d'ajout au panier -->
@@ -121,13 +128,29 @@ onMounted(async () => {
         await categoryStore.fetchCategories();
         categories.value = categoryStore.categories;
         product.value = await productStore.fetchProductById(route.params.id);
-        product.value.category = product.value.category || ''; // Assurez-vous que la catégorie est correctement définie
+        product.value.categories = product.value.categories || []; // Assurez-vous que categories est un tableau
     } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
     } finally {
         loading.value = false;
     }
 });
+
+const toggleCategorySelection = (categoryId) => {
+    const index = product.value.categories.indexOf(categoryId);
+    if (index === -1) {
+        product.value.categories.push(categoryId); // Ajouter la catégorie si elle n'est pas sélectionnée
+    } else {
+        product.value.categories.splice(index, 1); // Retirer la catégorie si elle est déjà sélectionnée
+    }
+};
+
+const getSelectedCategoryNames = (categories) => {
+    if (!categories || !Array.isArray(categories)) {
+        return []; // Retourne un tableau vide si categories est undefined ou non valide
+    }
+    return categories.map(category => category.name);
+};
 
 const editField = (field) => {
     editableField.value = field;
@@ -145,31 +168,35 @@ const triggerFileInput = () => {
     fileInput.value.click();
 };
 
-const selectCategory = (categoryId) => {
-    product.value.category = categoryId;
-    saveField();
-};
-
 const saveChanges = async () => {
     try {
         loading.value = true;
-        let updatedProduct;
+
+        const formData = new FormData();
+        formData.append('name', product.value.name || ''); // Assurez-vous que le champ est défini
+        formData.append('description', product.value.description || '');
+        formData.append('price', parseFloat(product.value.price) || 0); // Convertir en nombre
+        formData.append('stock', parseInt(product.value.stock, 10) || 0); // Convertir en entier
+
+        // Ajouter les catégories comme des champs individuels
+        const categoryIds = product.value.categories
+            .filter(category => typeof category === 'number' || (category && category.id)) // Filtrer les catégories invalides
+            .map(category => (typeof category === 'number' ? category : category.id)); // Extraire les IDs
+        categoryIds.forEach(id => formData.append('categories[]', id)); // Ajouter chaque ID individuellement
+
         if (imageFile.value) {
-            const formData = new FormData();
-            formData.append('name', product.value.name);
-            formData.append('description', product.value.description);
-            formData.append('price', product.value.price);
-            formData.append('stock', product.value.stock);
-            formData.append('category', product.value.category);
-            formData.append('image', imageFile.value);
-            updatedProduct = await productStore.updateProduct(product.value.id, formData);
-        } else {
-            updatedProduct = await productStore.updateProduct(product.value.id, product.value);
+            formData.append('image', imageFile.value); // Ajouter l'image si elle est présente
         }
-        product.value = updatedProduct; // Mettre à jour l'état local du produit
-        alert('Modifications enregistrées avec succès');
+
+        console.log('FormData envoyé :', Array.from(formData.entries())); // Log pour vérifier les données
+
+        // Envoyer la requête de mise à jour
+        await productStore.updateProduct(product.value.id, formData);
+
+        // Rediriger vers la liste des produits après la mise à jour
+        router.push('/products');
     } catch (error) {
-        console.error('Erreur lors de l’enregistrement des modifications:', error);
+        console.error('Erreur lors de la mise à jour du produit :', error.response?.data || error.message);
     } finally {
         loading.value = false;
     }

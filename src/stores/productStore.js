@@ -50,16 +50,17 @@ export const useProductStore = defineStore('productStore', {
     },
 
     // ✅ Modifier un produit via l'API Laravel
-    async updateProduct(productId, updatedData) {
+    async updateProduct(productId, data) {
       try {
-        const response = await pb.put(`/products/${productId}`, updatedData);
-        const index = this.products.findIndex(p => p.id === productId);
-        if (index !== -1) {
-          this.products[index] = response.data; // Mise à jour locale
-        }
-        return response.data;
+        console.log('Données envoyées :', data instanceof FormData ? Array.from(data.entries()) : data);
+        const response = await pb.post(`/products/${productId}?_method=PUT`, data, {
+          headers: {
+            'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
+          },
+        });
+        return response.data.product;
       } catch (error) {
-        console.error('Erreur lors de la modification du produit:', error);
+        console.error('Erreur lors de la modification du produit:', error.response?.data || error.message);
         throw error;
       }
     },
