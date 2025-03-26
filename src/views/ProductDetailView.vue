@@ -95,7 +95,7 @@
                             <p><strong>Nom :</strong> {{ product.name }}</p>
                             <p><strong>Description :</strong> {{ product.description }}</p>
                             <p><strong>Prix :</strong> {{ product.price }}€</p>
-                            <p><strong>Stock :</strong> {{ product.stock }}</p>
+                            <p><strong>Stock :</strong> {{ reactiveStock }}</p>
                             <p><strong>Catégories :</strong>
                                 {{ product.categories && product.categories.length > 0
                                     ? getSelectedCategoryNames(product.categories).join(', ')
@@ -163,7 +163,6 @@ onMounted(async () => {
     } finally {
         loading.value = false;
     }
-
 });
 
 const toggleCategorySelection = (categoryId) => {
@@ -218,8 +217,6 @@ const saveChanges = async () => {
             formData.append('image', imageFile.value); // Ajouter l'image si elle est présente
         }
 
-        console.log('FormData envoyé :', Array.from(formData.entries())); // Log pour vérifier les données
-
         // Envoyer la requête de mise à jour
         await productStore.updateProduct(product.value.id, formData);
 
@@ -248,10 +245,16 @@ const addToCart = () => {
         notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 5000);
         return;
     }
+
     if (quantity.value > product.value.stock) {
-        notificationStore.addNotification('Quantité demandée supérieure au stock disponible.', 'error', 5000);
+        notificationStore.addNotification(
+            `La quantité demandée (${quantity.value}) dépasse le stock disponible (${product.value.stock}).`,
+            'error',
+            5000
+        );
         return;
     }
+
     cartStore.addToCart(product.value.id, quantity.value);
     notificationStore.addNotification('Produit ajouté au panier.', 'success', 5000);
 };

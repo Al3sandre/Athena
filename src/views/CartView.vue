@@ -13,9 +13,9 @@
                         <!-- Détails du produit -->
                         <div class="flex-1">
                             <h2 class="text-lg font-semibold text-gray-800">{{ item.product?.name || 'Produit inconnu'
-                            }}</h2>
+                                }}</h2>
                             <p class="text-sm text-gray-500">Prix unitaire : {{ formatCurrency(item.product?.price || 0)
-                            }}</p>
+                                }}</p>
                         </div>
 
                         <!-- Quantité et total -->
@@ -187,7 +187,6 @@ const validateCart = async () => {
             })),
         };
 
-        console.log('orderData:', orderData); // Log pour vérifier les données envoyées
         await orderStore.createOrder(orderData);
         cartStore.clearCart(); // Vider le panier après validation
         alert('Commande validée avec succès !');

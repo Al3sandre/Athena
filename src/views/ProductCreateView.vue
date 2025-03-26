@@ -6,6 +6,7 @@
                 <label for="name" class="block mb-2">Nom du produit:</label>
                 <input v-model="name" type="text" id="name" required
                     class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p v-if="!name.trim()" class="text-red-500 text-sm">Le nom du produit est obligatoire.</p>
             </div>
             <div>
                 <label for="description" class="block mb-2">Description:</label>
@@ -158,6 +159,25 @@ const removeCategory = (id) => {
 
 const handleSubmit = async () => {
     try {
+        // Validation des champs
+        if (!name.value.trim()) {
+            alert('Le nom du produit est obligatoire.');
+            return;
+        }
+        if (!description.value.trim()) {
+            alert('La description du produit est obligatoire.');
+            return;
+        }
+        if (!price.value || price.value <= 0) {
+            alert('Le prix doit être supérieur à 0.');
+            return;
+        }
+        if (selectedCategories.value.length === 0) {
+            alert('Veuillez sélectionner au moins une catégorie.');
+            return;
+        }
+
+        // Préparer les données pour l'envoi
         const formData = new FormData();
         formData.append('name', name.value);
         formData.append('description', description.value);
@@ -173,8 +193,10 @@ const handleSubmit = async () => {
             formData.append('image', imageFile.value);
         }
 
+        // Envoyer les données au backend
         await productStore.addProduct(formData);
 
+        // Rediriger vers la liste des produits après la création
         router.push('/products');
     } catch (error) {
         console.error('Erreur lors de la création du produit:', error);

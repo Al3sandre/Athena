@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import pb from '@/api/pocketbase';
+import { useStockStore } from '@/stores/stockstore';
 
 export const useOrderStore = defineStore('orderStore', {
   state: () => ({
@@ -14,6 +15,28 @@ export const useOrderStore = defineStore('orderStore', {
   }),
 
   actions: {
+    // ✅ Vérifier les stocks avant de créer une commande
+    async validateStock(orderItems) {
+      const stockStore = useStockStore();
+
+      for (const item of orderItems) {
+        const productStock = stockStore.stock.find(product => product.id === item.product_id);
+
+        // Si le produit n'est pas trouvé dans le stock, récupérez-le depuis le backend
+        if (!productStock) {
+          await stockStore.updateProductStock(item.product_id, 0); // Met à jour localement le stock
+        }
+
+        const updatedProductStock = stockStore.stock.find(product => product.id === item.product_id);
+
+        if (!updatedProductStock || updatedProductStock.stock < item.quantity) {
+          throw new Error(
+            `Le produit ${item.product_id} n'a pas assez de stock. Stock disponible : ${updatedProductStock?.stock || 0}`
+          );
+        }
+      }
+    },
+
     // ✅ Récupérer toutes les commandes
     async fetchOrders(page = 1, perPage = 30) {
       try {
@@ -60,12 +83,24 @@ export const useOrderStore = defineStore('orderStore', {
 
     // ✅ Créer une commande
     async createOrder(orderData) {
+      const stockStore = useStockStore();
+
       try {
+        // Vérifiez les stocks avant de créer la commande
+        await this.validateStock(orderData.items);
+
+        // Créez la commande dans le backend
         const response = await pb.post('/orders', orderData);
         this.orders.push(response.data);
+
+        // Mettez à jour les stocks après la création de la commande
+        for (const item of orderData.items) {
+          await stockStore.updateProductStock(item.product_id, -item.quantity);
+        }
+
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la création de la commande:', error.response?.data || error.message);
+        console.error('Erreur lors de la création de la commande :', error.response?.data || error.message);
         throw error;
       }
     },

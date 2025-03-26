@@ -56,34 +56,29 @@ export const useCartStore = defineStore('cartStore', {
     // ✅ Ajouter un article au panier
     async addToCart(productId, quantity) {
       try {
-        // Vérifiez si le produit est déjà dans le panier
         const existingItem = this.cartItems.find(item => item.product_id === productId);
         if (existingItem) {
-          // Si le produit est déjà dans le panier, mettez simplement à jour la quantité
           existingItem.quantity += quantity;
 
           // Mettez à jour la quantité dans le backend
           await pb.put(`/cart-items/${existingItem.id}`, { quantity: existingItem.quantity });
         } else {
-          // Récupérez les informations complètes du produit depuis le backend
           const productResponse = await pb.get(`/products/${productId}`);
           const product = productResponse.data;
 
           // Ajoutez le produit au backend
           const response = await pb.post(`/cart-items`, {
-            cart_id: this.cartId, // Assurez-vous que `cartId` est défini
+            cart_id: this.cartId,
             product_id: productId,
             quantity,
           });
 
-          // Loggez la réponse pour voir l'objet retourné
-
-          // Ajoutez l'article au panier localement avec l'ID retourné
+          // Ajoutez l'article au panier localement
           this.cartItems.push({
-            id: response.data.id, // ID unique de l'article du panier (retourné par l'API)
+            id: response.data.id,
             product_id: productId,
             quantity,
-            product, // Inclure les détails du produit
+            product,
           });
         }
       } catch (error) {
@@ -94,19 +89,18 @@ export const useCartStore = defineStore('cartStore', {
     // ✅ Mettre à jour la quantité d'un article
     async updateCartItem(cartItemId, quantity) {
       try {
-        // Vérifiez que cartItemId est défini
-        if (!cartItemId) {
-          throw new Error("L'ID de l'article du panier est manquant.");
+        const item = this.cartItems.find(item => item.id === cartItemId);
+        if (!item) {
+          throw new Error("Article introuvable dans le panier.");
         }
+
+        const quantityChange = quantity - item.quantity;
 
         // Effectuez la requête PUT pour mettre à jour la quantité
-        const response = await pb.put(`/cart-items/${cartItemId}`, { quantity });
+        await pb.put(`/cart-items/${cartItemId}`, { quantity });
 
         // Mettez à jour localement la quantité dans le store
-        const item = this.cartItems.find(item => item.id === cartItemId);
-        if (item) {
-          item.quantity = quantity;
-        }
+        item.quantity = quantity;
       } catch (error) {
         console.error("Erreur lors de la mise à jour de l'article du panier :", error);
       }
@@ -115,6 +109,11 @@ export const useCartStore = defineStore('cartStore', {
     // ✅ Supprimer un article du panier
     async removeFromCart(cartItemId) {
       try {
+        const item = this.cartItems.find(item => item.id === cartItemId);
+        if (!item) {
+          throw new Error("Article introuvable dans le panier.");
+        }
+
         // Supprimez l'article du backend
         await pb.delete(`/cart-items/${cartItemId}`);
 

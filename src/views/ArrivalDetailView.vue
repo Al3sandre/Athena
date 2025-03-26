@@ -37,9 +37,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useArrivalStore } from '@/stores/arrivalStore';
+import { useStockStore } from '@/stores/stockstore';
 
 const route = useRoute();
 const router = useRouter();
+const stockStore = useStockStore();
 const arrivalStore = useArrivalStore();
 const arrival = ref(null);
 
@@ -59,10 +61,24 @@ const getImageUrl = (product) => {
 const toggleStatus = async () => {
     try {
         if (arrival.value.status === 'en cours') {
+            // Réceptionner l'arrivage
             await arrivalStore.receptionArrival(arrival.value.id);
+
+            // Ajouter les produits au stock
+            for (const product of arrival.value.products) {
+                await stockStore.updateProductStock(product.product.id, product.quantity, product.unit_price);
+            }
         } else {
+            // Revenir à l'état "en cours"
             await arrivalStore.unreceptionArrival(arrival.value.id);
+
+            // Retirer les produits du stock
+            for (const product of arrival.value.products) {
+                await stockStore.updateProductStock(product.product.id, -product.quantity);
+            }
         }
+
+        // Recharger les détails de l'arrivage
         arrival.value = await arrivalStore.fetchArrivalById(route.params.id);
     } catch (error) {
         console.error('Erreur lors de la modification du statut de l\'arrivage:', error);

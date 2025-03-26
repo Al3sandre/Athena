@@ -26,7 +26,6 @@ export const useArrivalStore = defineStore('arrivalStore', {
                 const response = await pb.get(`/arrivals/${arrivalId}`, {
                     params: { expand: 'arrival_products' }, // Ajout des relations pour inclure les produits
                 });
-                console.log('Données récupérées pour l\'arrivage :', response.data);
                 return response.data;
             } catch (error) {
                 console.error('Erreur lors de la récupération de l’arrivage:', error);
