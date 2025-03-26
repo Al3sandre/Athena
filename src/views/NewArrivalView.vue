@@ -1,46 +1,81 @@
 <template>
-    <div class="p-4">
-        <h1 class="text-2xl font-bold mb-4">Nouvel Arrivage</h1>
-        <form @submit.prevent="confirmArrival" class="space-y-4">
-            <div>
-                <label for="product-search" class="block mb-2">Rechercher un produit :</label>
-                <input v-model="searchQuery" id="product-search" type="text" @input="searchProducts"
-                    placeholder="Rechercher un produit..."
-                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <ul v-if="searchQuery.length > 0 && filteredProducts.length > 0" class="search-results mt-2">
-                    <li v-for="product in filteredProducts" :key="product.id" @dblclick="selectProduct(product)"
+    <div class="p-6 bg-gray-100 min-h-screen">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Créer un Nouvel Arrivage</h1>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <!-- Recherche de produit -->
+            <div class="mb-6">
+                <label for="product-search" class="block text-sm font-medium text-gray-700">Rechercher un produit
+                    :</label>
+                <input v-model="searchQuery" id="product-search" type="text" placeholder="Rechercher un produit..."
+                    class="w-full mt-2 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <ul v-if="searchQuery.length > 0 && filteredProducts.length > 0"
+                    class="mt-2 border rounded bg-white shadow-md max-h-48 overflow-y-auto">
+                    <li v-for="product in filteredProducts" :key="product.id" @click="selectProduct(product)"
                         class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                         {{ product.name }}
                     </li>
                 </ul>
             </div>
-            <div>
-                <label for="quantity" class="block mb-2">Quantité :</label>
-                <input v-model.number="quantity" id="quantity" type="number" min="1" required
-                    @keyup.enter="addProductToArrival"
-                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+            <!-- Quantité -->
+            <div class="mb-6">
+                <label for="quantity" class="block text-sm font-medium text-gray-700">Quantité :</label>
+                <input v-model.number="quantity" id="quantity" type="number" min="1"
+                    class="w-full mt-2 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+
+            <!-- Coût unitaire -->
+            <div class="mb-6">
+                <label for="unit-cost" class="block text-sm font-medium text-gray-700">Coût unitaire :</label>
+                <input v-model.number="amount" id="unit-cost" type="number" min="0"
+                    class="w-full mt-2 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- Ajouter au tableau -->
             <button type="button" @click="addProductToArrival"
-                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
-                Ajouter au Arrivage
+                class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200">
+                Ajouter au tableau
             </button>
-            <ul class="mt-4 space-y-2">
-                <li v-for="item in arrivalItems" :key="item.product_id" class="flex items-center space-x-4">
-                    <span @dblclick="enableEditing(item.product_id)" class="cursor-pointer">
-                        {{ getProductDetails(item.product_id).name }} -
-                        <span v-if="!isEditing(item.product_id)">
-                            {{ item.quantity }}x
-                        </span>
-                        <input v-else type="number" v-model.number="item.quantity"
-                            @blur="disableEditing(item.product_id)" min="1" class="border rounded px-2 py-1 w-16" />
-                    </span>
-                </li>
-            </ul>
-            <button type="submit"
-                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200">
-                Confirmer l'Arrivage
+
+            <!-- Liste des produits ajoutés -->
+            <div v-if="arrivalItems.length > 0" class="mt-6">
+                <h2 class="text-xl font-semibold mb-4">Produits ajoutés</h2>
+                <ul class="space-y-4">
+                    <li v-for="item in arrivalItems" :key="item.product_id"
+                        class="flex items-center justify-between bg-gray-50 p-4 rounded shadow-md">
+                        <div>
+                            <p class="font-semibold">{{ getProductDetails(item.product_id).name }}</p>
+                            <p class="text-sm text-gray-500">Quantité : {{ item.quantity }}</p>
+                            <p class="text-sm text-gray-500">Coût unitaire : {{ item.amount }} €</p>
+                            <p class="text-sm text-gray-500 font-bold">Montant total : {{ item.quantity * item.amount
+                            }} €</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input v-if="isEditing(item.product_id)" type="number" v-model.number="item.quantity"
+                                min="1"
+                                class="w-16 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                @blur="disableEditing(item.product_id)" />
+                            <button v-else @click="enableEditing(item.product_id)"
+                                class="text-blue-500 hover:text-blue-700">
+                                Modifier
+                            </button>
+                            <button @click="removeProductFromArrival(item.product_id)"
+                                class="text-red-500 hover:text-red-700">
+                                Supprimer
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+                <div class="mt-4 text-right font-bold text-lg">
+                    Montant total global : {{ totalAmount }} €
+                </div>
+            </div>
+
+            <!-- Bouton de confirmation -->
+            <button :disabled="isSubmitting" @click="confirmArrival" class="btn btn-primary">
+                Valider l'arrivage
             </button>
-        </form>
+        </div>
     </div>
 </template>
 
@@ -56,16 +91,16 @@ const arrivalStore = useArrivalStore();
 const products = computed(() => productStore.products);
 const searchQuery = ref('');
 const filteredProducts = computed(() => {
-    return products.value.filter(product => product.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
+    return products.value.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
 });
 const selectedProduct = ref(null);
 const quantity = ref(1);
+const amount = ref(0); // Nouveau champ pour le coût unitaire
 const arrivalItems = ref([]);
 const editingItem = ref(null);
-
-const searchProducts = () => {
-    // La recherche est déjà gérée par la computed property filteredProducts
-};
+const isSubmitting = ref(false);
 
 const selectProduct = (product) => {
     selectedProduct.value = product.id;
@@ -73,72 +108,78 @@ const selectProduct = (product) => {
 };
 
 const addProductToArrival = () => {
-    if (selectedProduct.value && quantity.value > 0) {
+    if (selectedProduct.value && quantity.value > 0 && amount.value > 0) {
         const existingItem = arrivalItems.value.find(item => item.product_id === selectedProduct.value);
         if (existingItem) {
             existingItem.quantity += quantity.value;
         } else {
             arrivalItems.value.push({
                 product_id: selectedProduct.value,
-                quantity: quantity.value
+                quantity: quantity.value,
+                amount: amount.value, // Ajout du coût unitaire
             });
         }
         selectedProduct.value = null;
         searchQuery.value = '';
         quantity.value = 1;
+        amount.value = 0;
     }
 };
 
+const removeProductFromArrival = (productId) => {
+    arrivalItems.value = arrivalItems.value.filter(item => item.product_id !== productId);
+};
+
 const confirmArrival = async () => {
+    if (isSubmitting.value) return; // Empêche les appels multiples
+    isSubmitting.value = true;
+
     try {
-        // Créer un nouvel arrivage
         const newArrival = await arrivalStore.addArrival({
-            amount: arrivalItems.value.reduce((total, item) => total + item.quantity, 0),
+            amount: arrivalItems.value.reduce((total, item) => total + item.quantity * item.amount, 0),
             status: 'en cours',
-            arrival_product: []
         });
 
-        // Ajouter les produits à l'arrivage
-        const arrivalProductIds = [];
         for (const item of arrivalItems.value) {
-            const arrivalProduct = await arrivalStore.addArrivalProduct({
-                product: item.product_id,
-                quantity: item.quantity
+            await arrivalStore.addArrivalProduct({
+                arrival_id: newArrival.id,
+                product_id: item.product_id,
+                quantity: item.quantity,
+                unit_price: item.amount,
             });
-            arrivalProductIds.push(arrivalProduct.id);
         }
 
-        // Mettre à jour l'arrivage avec les produits
-        await arrivalStore.updateArrival(newArrival.id, {
-            arrival_product: arrivalProductIds
-        });
-
-        await productStore.fetchProducts();
         router.push({ name: 'ArrivalManagement' });
     } catch (error) {
         console.error('Erreur lors de la confirmation de l\'arrivage:', error);
+    } finally {
+        isSubmitting.value = false; // Réactive le bouton après la soumission
     }
 };
 
 const getProductDetails = (productId) => {
-    return products.value.find(product => product.id === productId);
+    return products.value.find(product => product.id === productId) || {};
 };
 
-const isEditing = (productId) => {
-    return editingItem.value === productId;
-};
+const isEditing = (productId) => editingItem.value === productId;
 
 const enableEditing = (productId) => {
     editingItem.value = productId;
 };
 
-const disableEditing = (productId) => {
+const disableEditing = () => {
     editingItem.value = null;
 };
+
+const totalAmount = computed(() => {
+    return arrivalItems.value.reduce((total, item) => total + item.quantity * item.amount, 0);
+});
 
 onMounted(async () => {
     await productStore.fetchProducts();
 });
+
+
 </script>
 
 <style scoped>

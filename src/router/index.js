@@ -38,6 +38,7 @@ const routes = [
   { path: '/new-arrival', component: NewArrivalView, name: 'NewArrival', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/arrival/:id', component: ArrivalDetailView, name: 'ArrivalDetail', meta: { requiresAuth: true, roles: ['admin'] } },
   { path: '/inventory', component: InventoryManagementView, name: 'InventoryManagement', meta: { requiresAuth: true, roles: ['admin'] } },
+
 ];
 
 const router = createRouter({

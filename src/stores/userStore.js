@@ -12,7 +12,6 @@ export const useUserStore = defineStore('userStore', {
     // ✅ Connexion de l'utilisateur
     async login(email, password) {
       try {
-        console.log('Tentative de connexion avec:', { email, password });
         const response = await pb.post('/login', { email, password });
 
         this.token = response.data.access_token;
@@ -35,7 +34,6 @@ export const useUserStore = defineStore('userStore', {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_id');
 
-      console.log('Déconnexion réussie.');
       window.location.href = '/login'; // Redirigez vers la page de connexion
     },
 

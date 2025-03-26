@@ -10,7 +10,8 @@
             <li v-for="arrival in paginatedArrivals" :key="arrival.id" class="bg-white p-4 rounded shadow-md">
                 <router-link :to="{ name: 'ArrivalDetail', params: { id: arrival.id } }"
                     class="text-blue-500 hover:text-blue-700">
-                    ID : {{ arrival.id }} - Montant : {{ arrival.amount }} - Date : {{ formatDate(arrival.created) }}
+                    ID : {{ arrival.id }} - Montant : {{ arrival.amount }} € - Date : {{ formatDate(arrival.created_at)
+                    }}
                 </router-link>
             </li>
         </ul>
@@ -41,24 +42,17 @@ const itemsPerPage = 10;
 
 const paginatedArrivals = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return arrivals.value.slice(start, end);
+    return arrivals.value.slice(start, start + itemsPerPage);
 });
 
-const totalPages = computed(() => {
-    return Math.ceil(arrivals.value.length / itemsPerPage);
-});
+const totalPages = computed(() => Math.ceil(arrivals.value.length / itemsPerPage));
 
 const prevPage = () => {
-    if (currentPage.value > 1) {
-        currentPage.value--;
-    }
+    if (currentPage.value > 1) currentPage.value--;
 };
 
 const nextPage = () => {
-    if (currentPage.value < totalPages.value) {
-        currentPage.value++;
-    }
+    if (currentPage.value < totalPages.value) currentPage.value++;
 };
 
 const goToNewArrival = () => {
@@ -71,6 +65,10 @@ const formatDate = (dateString) => {
 };
 
 onMounted(async () => {
-    await arrivalStore.fetchArrivals();
+    try {
+        await arrivalStore.fetchArrivals();
+    } catch (error) {
+        console.error('Erreur lors de la récupération des arrivages:', error);
+    }
 });
 </script>
