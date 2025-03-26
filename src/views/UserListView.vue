@@ -5,7 +5,7 @@
             class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200 mb-4 inline-block">
             Créer un nouvel utilisateur
         </router-link>
-        <ul class="space-y-4">
+        <ul v-if="users.length" class="space-y-4">
             <li v-for="user in users" :key="user.id"
                 class="bg-white p-4 rounded shadow-md flex justify-between items-center">
                 <div>
@@ -18,6 +18,7 @@
                 </router-link>
             </li>
         </ul>
+        <p v-else>Aucun utilisateur trouvé.</p>
     </div>
 </template>
 
@@ -29,6 +30,11 @@ const userStore = useUserStore();
 const users = computed(() => userStore.users);
 
 onMounted(async () => {
-    await userStore.fetchAllUsers();
+    try {
+        await userStore.fetchAllUsers(); // Recharger les utilisateurs
+    } catch (error) {
+        console.error('Erreur lors du chargement des utilisateurs :', error);
+        alert('Impossible de charger la liste des utilisateurs.');
+    }
 });
 </script>

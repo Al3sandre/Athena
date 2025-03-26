@@ -3,7 +3,7 @@ import pb from '@/api/pocketbase'; // Utilisation de l'instance Axios configuré
 
 export const useUserStore = defineStore('userStore', {
   state: () => ({
-    user: null,
+    user: null, // Utilisateur actuel
     users: [],
     token: localStorage.getItem('auth_token') || null,
   }),
@@ -18,14 +18,13 @@ export const useUserStore = defineStore('userStore', {
         localStorage.setItem('auth_token', this.token);
 
         this.user = response.data.user;
-        localStorage.setItem('user_id', this.user.id);
+        localStorage.setItem('user_id', this.user.id); // Stocker l'ID de l'utilisateur
         return true;
       } catch (error) {
         console.error('Erreur de connexion:', error.response?.data || error.message);
         return false;
       }
     },
-
     // ✅ Déconnexion de l'utilisateur
     async logout() {
       this.user = null;
@@ -39,27 +38,18 @@ export const useUserStore = defineStore('userStore', {
 
     // ✅ Charger les informations de l'utilisateur connecté
     async loadUserFromSession() {
-      if (!this.token) {
-        console.warn('Aucun token trouvé, utilisateur non connecté.');
-        return;
-      }
-
       try {
-        const userId = this.user?.id || localStorage.getItem('user_id');
+        const userId = localStorage.getItem('user_id'); // Récupérer l'ID de l'utilisateur depuis localStorage
         if (!userId) {
-          console.warn('Aucun ID utilisateur trouvé.');
-          return;
+          throw new Error('Aucun utilisateur connecté.');
         }
 
-        const response = await pb.get(`/users/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        });
+        const response = await pb.get(`/users/${userId}`);
         this.user = response.data;
       } catch (error) {
-        console.warn('Erreur lors du chargement de l’utilisateur:', error.response?.data || error.message);
-        this.logout(); // Déconnectez l'utilisateur si le token est invalide
+        const errorMessage = error.response && error.response.data ? error.response.data : error.message;
+        console.error('Erreur lors du chargement de l\'utilisateur : ', errorMessage);
+        throw error;
       }
     },
 
@@ -115,7 +105,7 @@ export const useUserStore = defineStore('userStore', {
         const response = await pb.get(`/users/${userId}`);
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la récupération de l\'utilisateur :', error);
+        console.error('Erreur lors de la récupération de l utilisateur : ', error);
         throw error;
       }
     },
@@ -128,29 +118,31 @@ export const useUserStore = defineStore('userStore', {
             Authorization: `Bearer ${this.token}`,
           },
         });
-        this.users.push(response.data);
+        this.users.push(response.data); // Ajouter l'utilisateur à la liste
         return response.data;
       } catch (error) {
-        console.error('Erreur lors de la création de l’utilisateur:', error.response?.data || error.message);
+        console.error('Erreur lors de la création de l utilisateur: ', error.response?.data || error.message);
         throw error;
       }
     },
 
     // ✅ Mettre à jour un utilisateur
-    async updateUser(userId, updatedData) {
+    async updateUser(userId, data) {
+      console.log(data)
       try {
-        const response = await pb.put(`/users/${userId}`, updatedData, {
+        const response = await pb.post(`/users/${userId}?_method=PUT`, data, {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json',
           },
         });
-        const index = this.users.findIndex(user => user.id === userId);
-        if (index !== -1) {
-          this.users[index] = response.data;
+        // Mettre à jour l'utilisateur dans le store
+        const updatedUserIndex = this.users.findIndex(user => user.id === userId);
+        if (updatedUserIndex !== -1) {
+          this.users[updatedUserIndex] = response.data.user; // Mettre à jour localement
         }
-        return response.data;
+        return response.data.user;
       } catch (error) {
-        console.error('Erreur lors de la mise à jour de l’utilisateur:', error.response?.data || error.message);
+        console.error('Erreur lors de la mise à jour de l\'utilisateur :', error.response?.data || error.message);
         throw error;
       }
     },
@@ -165,7 +157,7 @@ export const useUserStore = defineStore('userStore', {
         });
         this.users = this.users.filter(user => user.id !== userId);
       } catch (error) {
-        console.error('Erreur lors de la suppression de l’utilisateur:', error.response?.data || error.message);
+        console.error('Erreur lors de la suppression de l utilisateur: ', error.response?.data || error.message);
         throw error;
       }
     },
@@ -180,4 +172,13 @@ export const useUserStore = defineStore('userStore', {
       return this.getRole() === 'admin';
     },
   },
-}); // Assurez-vous que cette accolade fermante est correcte
+
+  getters: {
+    getImageUrl: (state) => (user) => {
+      if (!user || !user.avatar) {
+        return '/placeholder-image.png'; // Image par défaut si aucune image n'est disponible
+      }
+      return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${user.avatar}`;
+    },
+  },
+});

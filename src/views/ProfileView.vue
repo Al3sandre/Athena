@@ -14,11 +14,6 @@
                     class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-                <label for="role" class="block mb-2">Rôle :</label>
-                <input v-model="user.role" id="role" type="text" disabled
-                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
                 <label for="avatar" class="block mb-2">Avatar :</label>
                 <img :src="userStore.getImageUrl(user)" alt="Avatar de l'utilisateur" @click="triggerFileInput"
                     class="cursor-pointer w-32 h-32 object-cover rounded-full mb-4" />
@@ -36,18 +31,21 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
-import { useNotificationStore } from '@/stores/notifications';
 
 const userStore = useUserStore();
-const notificationStore = useNotificationStore();
 
 const user = ref(null);
 const imageFile = ref(null);
 const fileInput = ref(null);
 
 onMounted(async () => {
-    await userStore.loadUserFromSession();
-    user.value = { ...userStore.user }; // Cloner l'utilisateur pour éviter les modifications directes
+    try {
+        await userStore.loadUserFromSession();
+        user.value = { ...userStore.user }; // Cloner l'utilisateur pour éviter les modifications directes
+    } catch (error) {
+        console.error('Erreur lors du chargement de l\'utilisateur :', error);
+        alert('Impossible de charger les informations de l\'utilisateur. Veuillez vérifier votre connexion ou contacter l\'administrateur.');
+    }
 });
 
 const triggerFileInput = () => {
@@ -63,28 +61,26 @@ const saveChanges = async () => {
         let updatedUser;
         if (imageFile.value) {
             const formData = new FormData();
-            formData.append('email', user.value.email);
             formData.append('name', user.value.name);
-            formData.append('role', user.value.role);
-            formData.append('avatar', imageFile.value);
-
-            // Ajout de logs pour déboguer
-            for (let pair of formData.entries()) {
-                console.log(pair[0], pair[1]);
-            }
+            formData.append('email', user.value.email);
+            formData.append('avatar', imageFile.value); // Inclure l'avatar comme fichier
 
             updatedUser = await userStore.updateUser(user.value.id, formData);
         } else {
-            updatedUser = await userStore.updateUser(user.value.id, user.value);
+            updatedUser = await userStore.updateUser(user.value.id, {
+                name: user.value.name,
+                email: user.value.email,
+            });
         }
-        userStore.user = updatedUser; // Mettre à jour l'utilisateur dans le store
-        user.value.avatar = updatedUser.avatar;
-        notificationStore.clearNotifications();
-        notificationStore.addNotification('Profil mis à jour avec succès.', 'success', 5000);
+
+        // Mettre à jour l'utilisateur dans le store et localement
+        userStore.user = updatedUser;
+        user.value = { ...updatedUser }; // Mettre à jour l'utilisateur localement
+
+        alert('Profil mis à jour avec succès.');
     } catch (error) {
         console.error('Erreur lors de la mise à jour du profil:', error);
-        notificationStore.clearNotifications();
-        notificationStore.addNotification('Erreur lors de la mise à jour du profil.', 'error', 5000);
+        alert('Une erreur est survenue lors de la mise à jour du profil.');
     }
 };
 </script>

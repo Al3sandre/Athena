@@ -47,7 +47,8 @@ const fetchUser = async () => {
     try {
         user.value = await userStore.fetchUserById(route.params.id);
     } catch (error) {
-        console.error('Erreur lors de la récupération de l’utilisateur:', error);
+        console.error('Erreur lors de la récupération de l’utilisateur :', error);
+        alert('Impossible de charger les données de l’utilisateur.');
         router.push('/users'); // Rediriger vers la liste des utilisateurs en cas d'erreur
     }
 };
@@ -59,9 +60,11 @@ const updateUser = async () => {
             email: user.value.email,
             role: user.value.role
         });
+        alert('Utilisateur mis à jour avec succès.');
         router.push('/users');
     } catch (error) {
-        console.error('Erreur lors de la mise à jour de l’utilisateur:', error);
+        console.error('Erreur lors de la mise à jour de l’utilisateur :', error);
+        alert('Une erreur est survenue lors de la mise à jour de l’utilisateur.');
     }
 };
 

@@ -83,7 +83,6 @@ const totalAmount = computed(() => {
 onMounted(async () => {
     try {
         const data = await arrivalStore.fetchArrivalById(route.params.id);
-        console.log('Détails de l\'arrivage chargés :', data);
         arrival.value = {
             ...data,
             products: data.products || [], // Assurez-vous que products est un tableau

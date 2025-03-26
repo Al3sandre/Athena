@@ -26,8 +26,35 @@ const productStore = useProductStore();
 const products = computed(() => productStore.products);
 
 const updateStock = async (product) => {
-    await productStore.updateProduct(product.id, { stock: product.newStock });
-    await productStore.fetchProducts();
+    try {
+        // Demander confirmation avant de procéder
+        const confirmation = window.confirm(
+            `Êtes-vous sûr de vouloir modifier le stock de "${product.name}" à ${product.newStock} ?`
+        );
+
+        if (!confirmation) {
+            return; // Annuler l'action si l'utilisateur refuse
+        }
+
+        // Récupérer les informations complètes du produit
+        const fullProduct = await productStore.fetchProductById(product.id);
+
+        // Inclure tous les champs requis dans la requête de mise à jour
+        await productStore.updateProduct(product.id, {
+            stock: product.newStock,
+            name: fullProduct.name,
+            price: fullProduct.price, // Inclure le tarif du produit
+        });
+
+        // Rafraîchir la liste des produits
+        await productStore.fetchProducts();
+
+        // Afficher un message de succès
+        alert(`Le stock de "${product.name}" a été mis à jour avec succès.`);
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du stock :', error);
+        alert('Une erreur est survenue lors de la mise à jour du stock.');
+    }
 };
 
 onMounted(async () => {

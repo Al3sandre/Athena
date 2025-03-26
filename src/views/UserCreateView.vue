@@ -46,12 +46,18 @@ const password = ref('');
 const role = ref('store');
 
 const createUser = async () => {
-    await userStore.createUser({
-        name: name.value,
-        email: email.value,
-        password: password.value,
-        role: role.value
-    });
-    router.push('/users');
+    try {
+        await userStore.createUser({
+            name: name.value,
+            email: email.value,
+            password: password.value,
+            role: role.value,
+        });
+        alert('Utilisateur créé avec succès.');
+        router.push('/Users'); // Redirection
+    } catch (error) {
+        console.error('Erreur lors de la création de l’utilisateur :', error);
+        alert('Une erreur est survenue lors de la création de l’utilisateur.');
+    }
 };
 </script>
