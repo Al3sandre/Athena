@@ -243,11 +243,6 @@ const getImageUrl = (product) => {
     return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${product.image}`;
 };
 
-const getCategoryName = (categoryId) => {
-    const category = categories.value.find(cat => cat.id === categoryId);
-    return category ? category.name : '';
-};
-
 const addToCart = () => {
     if (quantity.value <= 0) {
         notificationStore.addNotification('La quantité doit être supérieure à 0.', 'error', 5000);

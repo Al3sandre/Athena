@@ -3,16 +3,18 @@
         <h1 class="text-2xl font-bold mb-4">Détails de l'Arrivage</h1>
         <div v-if="arrival" class="bg-white p-4 rounded shadow-md">
             <p><strong>ID :</strong> {{ arrival.id }}</p>
-            <p><strong>Montant :</strong> {{ arrival.amount }} €</p>
+            <p><strong>Montant :</strong> {{ arrival.amount || 'Non spécifié' }} €</p>
             <p><strong>Date :</strong> {{ formatDate(arrival.created_at) }}</p>
-            <p><strong>Status :</strong> {{ arrival.status }}</p>
+            <p><strong>Status :</strong> {{ arrival.status || 'Non spécifié' }}</p>
             <ul class="mt-4 space-y-2">
                 <li v-for="product in arrival.products" :key="product.id" class="flex items-center space-x-4">
-                    <img :src="getImageUrl(product)" alt="Image du produit" class="w-12 h-12 object-cover rounded" />
-                    <span class="font-semibold">{{ product.name }}</span>
+                    <img :src="getImageUrl(product.product)" alt="Image du produit"
+                        class="w-12 h-12 object-cover rounded" />
+                    <span class="font-semibold">{{ product.product.name }}</span>
                     <span>Quantité :</span>
                     <span>{{ product.quantity }}</span>
-                    <span>Coût unitaire : {{ product.price }} €</span>
+                    <span>Coût unitaire : {{ product.unit_price }} €</span>
+                    <span>Prix total : {{ (product.quantity * product.unit_price).toFixed(2) }} €</span>
                 </li>
             </ul>
             <p class="mt-4"><strong>Montant total de l'arrivage :</strong> {{ totalAmount }} €</p>
@@ -35,21 +37,23 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useArrivalStore } from '@/stores/arrivalStore';
-import { useProductStore } from '@/stores/productStore';
 
 const route = useRoute();
 const router = useRouter();
 const arrivalStore = useArrivalStore();
-const productStore = useProductStore();
 const arrival = ref(null);
 
 const formatDate = (dateString) => {
+    if (!dateString) return 'Date invalide';
     const date = new Date(dateString);
-    return isNaN(date) ? 'Date invalide' : date.toLocaleString();
+    return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleString();
 };
 
 const getImageUrl = (product) => {
-    return product.image ? `/storage/${product.image}` : '/images/placeholder.png';
+    if (!product || !product.image) {
+        return '/placeholder-image.png'; // Image par défaut si aucune image n'est disponible
+    }
+    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${product.image}`;
 };
 
 const toggleStatus = async () => {
@@ -66,13 +70,24 @@ const toggleStatus = async () => {
 };
 
 const totalAmount = computed(() => {
-    return arrival.value?.products.reduce((total, product) => total + (product.price * product.quantity), 0).toFixed(2) || 0;
+    if (!arrival.value || !Array.isArray(arrival.value.products)) {
+        return 0; // Retourne 0 si products est undefined ou n'est pas un tableau
+    }
+
+    return arrival.value.products.reduce((total, product) => {
+        const unitPrice = parseFloat(product.unit_price) || 0;
+        return total + (unitPrice * product.quantity);
+    }, 0).toFixed(2);
 });
 
 onMounted(async () => {
     try {
-        await productStore.fetchProducts();
-        arrival.value = await arrivalStore.fetchArrivalById(route.params.id);
+        const data = await arrivalStore.fetchArrivalById(route.params.id);
+        console.log('Détails de l\'arrivage chargés :', data);
+        arrival.value = {
+            ...data,
+            products: data.products || [], // Assurez-vous que products est un tableau
+        };
     } catch (error) {
         console.error('Erreur lors de la récupération des détails de l\'arrivage:', error);
     }
