@@ -34,13 +34,14 @@ import { useUserStore } from '@/stores/userStore';
 
 const userStore = useUserStore();
 
-const user = ref(null);
-const imageFile = ref(null);
-const fileInput = ref(null);
+const user = ref(null); // Utilisateur local pour éviter les modifications directes sur le store
+const imageFile = ref(null); // Fichier d'avatar sélectionné
+const fileInput = ref(null); // Référence à l'input de fichier
 
+// Charger les informations de l'utilisateur connecté
 onMounted(async () => {
     try {
-        await userStore.loadUserFromSession();
+        await userStore.fetchUser(); // Charger l'utilisateur depuis le store
         user.value = { ...userStore.user }; // Cloner l'utilisateur pour éviter les modifications directes
     } catch (error) {
         console.error('Erreur lors du chargement de l\'utilisateur :', error);
@@ -48,14 +49,17 @@ onMounted(async () => {
     }
 });
 
+// Ouvrir l'input de fichier lorsque l'utilisateur clique sur l'avatar
 const triggerFileInput = () => {
     fileInput.value.click();
 };
 
+// Gérer la sélection d'un fichier
 const handleFileUpload = (event) => {
     imageFile.value = event.target.files[0];
 };
 
+// Enregistrer les modifications du profil
 const saveChanges = async () => {
     try {
         let updatedUser;
