@@ -56,6 +56,14 @@ export const useCartStore = defineStore('cartStore', {
     // ✅ Ajouter un article au panier
     async addToCart(productId, quantity) {
       try {
+        let product = this.cartItems.find(item => item.product_id === productId)?.product;
+
+        // Si le produit n'est pas trouvé localement, récupérez-le depuis l'API
+        if (!product) {
+          const productResponse = await pb.get(`/products/${productId}`);
+          product = productResponse.data;
+        }
+
         const existingItem = this.cartItems.find(item => item.product_id === productId);
         if (existingItem) {
           existingItem.quantity += quantity;
@@ -63,9 +71,6 @@ export const useCartStore = defineStore('cartStore', {
           // Mettez à jour la quantité dans le backend
           await pb.put(`/cart-items/${existingItem.id}`, { quantity: existingItem.quantity });
         } else {
-          const productResponse = await pb.get(`/products/${productId}`);
-          const product = productResponse.data;
-
           // Ajoutez le produit au backend
           const response = await pb.post(`/cart-items`, {
             cart_id: this.cartId,

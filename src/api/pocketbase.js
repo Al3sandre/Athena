@@ -18,6 +18,13 @@ pb.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Ajoutez un paramètre cache_buster pour éviter le cache
+        config.params = {
+            ...config.params,
+            cache_buster: Date.now(),
+        };
+
         return config;
     },
     (error) => {

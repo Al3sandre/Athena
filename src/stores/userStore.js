@@ -37,18 +37,21 @@ export const useUserStore = defineStore('userStore', {
     },
 
     // ✅ Charger les informations de l'utilisateur connecté
-    async loadUserFromSession() {
+    async fetchUser() {
       try {
         const userId = localStorage.getItem('user_id'); // Récupérer l'ID de l'utilisateur depuis localStorage
         if (!userId) {
           throw new Error('Aucun utilisateur connecté.');
         }
 
-        const response = await pb.get(`/users/${userId}`);
+        const response = await pb.get(`/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
         this.user = response.data;
       } catch (error) {
-        const errorMessage = error.response && error.response.data ? error.response.data : error.message;
-        console.error('Erreur lors du chargement de l\'utilisateur : ', errorMessage);
+        console.error('Erreur lors de la récupération de l’utilisateur :', error.response?.data || error.message);
         throw error;
       }
     },
@@ -74,7 +77,7 @@ export const useUserStore = defineStore('userStore', {
       }
     },
 
-    // ✅ Récupérer tous les utilisateurs
+    // ✅ Récupérer tous les utilisateurs (uniquement pour les administrateurs)
     async fetchAllUsers() {
       if (!this.token) {
         console.error('Aucun token trouvé. Veuillez vous connecter.');
@@ -90,10 +93,6 @@ export const useUserStore = defineStore('userStore', {
         this.users = response.data;
         return response.data;
       } catch (error) {
-        if (error.response?.status === 401) {
-          console.warn('Token invalide ou expiré. Déconnexion en cours...');
-          this.logout(); // Déconnectez l'utilisateur si le token est invalide
-        }
         console.error('Erreur lors de la récupération des utilisateurs:', error.response?.data || error.message);
         return [];
       }
@@ -166,14 +165,11 @@ export const useUserStore = defineStore('userStore', {
     getRole() {
       return this.user ? this.user.role : null;
     },
-
-    // ✅ Vérifier si l'utilisateur est administrateur
-    isAdmin() {
-      return this.getRole() === 'admin';
-    },
   },
 
   getters: {
+    isAdmin: (state) => state.user?.role === 'admin', // Vérifie si l'utilisateur est admin
+    getUserId: (state) => state.user?.id, // Retourne l'ID de l'utilisateur connecté
     getImageUrl: (state) => (user) => {
       if (!user || !user.avatar) {
         return '/placeholder-image.png'; // Image par défaut si aucune image n'est disponible

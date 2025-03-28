@@ -34,10 +34,11 @@
                         <div class="mt-4">
                             <label for="status" class="block text-sm font-medium text-gray-700">Modifier le
                                 statut</label>
-                            <select v-model="order.status" @change="updateOrderStatus(order)"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                <option v-for="status in orderStatuses" :key="status" :value="status">{{ status }}
-                                </option>
+                            <select v-model="order.status" @change="updateOrderStatus(order)" class="form-select">
+                                <option value="en cours">En cours</option>
+                                <option value="en preparation">En préparation</option>
+                                <option value="en transfert">En transfert</option>
+                                <option value="livrer">Livré</option>
                             </select>
                         </div>
                     </div>
@@ -68,6 +69,7 @@
                         d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4.293 4.293a1 1 0 010 1.414l-4.293 4.293a1 1 0 01-1.414 0z"
                         clip-rule="evenodd" />
                 </svg>
+                Suivant
             </button>
         </div>
     </div>
@@ -80,26 +82,30 @@ import { computed, onMounted, ref } from 'vue';
 
 const orderStore = useOrderStore();
 const userStore = useUserStore();
+
+// Utilisation des getters
 const orders = computed(() => orderStore.orders);
 const pagination = computed(() => orderStore.pagination);
-const isAdmin = computed(() => userStore.isAdmin());
-const userId = computed(() => userStore.getUserId());
+const isAdmin = computed(() => userStore.isAdmin); // Utilisation du getter
+const userId = computed(() => userStore.getUserId); // Utilisation du getter
 
 const orderStatuses = ['en cours', 'en preparation', 'en transfert', 'livrer'];
 
 const isLoading = ref(false);
 const errorMessage = ref('');
 
+const userNames = ref({});
+
+// Fonction pour organiser les commandes par statut
 const categorizedOrders = computed(() => {
     const categories = {
         'en cours': [],
-        'préparé': [],
-        'en transfert': [],
         'en preparation': [],
-        'livrer': []
+        'en transfert': [],
+        'livrer': [],
     };
 
-    orders.value.forEach(order => {
+    orders.value.forEach((order) => {
         if (categories[order.status]) {
             categories[order.status].push(order);
         }
@@ -108,7 +114,61 @@ const categorizedOrders = computed(() => {
     return categories;
 });
 
-// Fonction pour formater la date en dd/MM/yyyy
+// Fonction pour obtenir une classe CSS en fonction du statut
+const getStatusClass = (status) => {
+    switch (status) {
+        case 'en cours':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'en preparation':
+            return 'bg-blue-100 text-blue-800';
+        case 'en transfert':
+            return 'bg-purple-100 text-purple-800';
+        case 'livrer':
+            return 'bg-green-100 text-green-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+};
+
+// Fonction pour récupérer les noms des utilisateurs
+const fetchUserNames = async () => {
+    if (isAdmin.value) {
+        try {
+            const users = await userStore.fetchAllUsers();
+            users.forEach((user) => {
+                userNames.value[user.id] = user.name;
+            });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des utilisateurs:', error);
+            errorMessage.value = 'Impossible de récupérer les noms des utilisateurs.';
+        }
+    } else {
+        // Si l'utilisateur n'est pas admin, ajoutez uniquement son propre nom
+        userNames.value[userId.value] = userStore.user?.name || 'Utilisateur inconnu';
+    }
+};
+
+// Fonction pour récupérer les commandes
+const fetchOrders = async (page = 1) => {
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+        // Appeler la méthode fetchOrders avec les bons paramètres
+        await orderStore.fetchOrders(page, 30, userId.value, isAdmin.value);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des commandes:', error);
+        errorMessage.value = 'Impossible de récupérer les commandes. Veuillez réessayer.';
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+// Fonction pour obtenir le nom d'un utilisateur
+const getUserName = (userId) => {
+    return userNames.value[userId] || 'Utilisateur inconnu';
+};
+
+// Fonction pour formater une date en "dd/MM/yyyy"
 const formatDate = (dateString) => {
     const date = new Date(dateString);
     if (isNaN(date)) {
@@ -120,81 +180,26 @@ const formatDate = (dateString) => {
     return `${day}/${month}/${year}`;
 };
 
-// Fonction pour obtenir une classe CSS en fonction du statut
-const getStatusClass = (status) => {
-    switch (status) {
-        case 'en cours':
-            return 'bg-yellow-100 text-yellow-800';
-        case 'préparé':
-            return 'bg-blue-100 text-blue-800';
-        case 'en transfert':
-            return 'bg-purple-100 text-purple-800';
-        case 'livré':
-            return 'bg-green-100 text-green-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
-    }
-};
-
-const fetchOrders = async (page = 1) => {
-    isLoading.value = true;
-    errorMessage.value = '';
-    try {
-        if (isAdmin.value) {
-            await orderStore.fetchOrders(page);
-        } else {
-            await orderStore.fetchOrdersByUserId(userId.value, page);
-        }
-    } catch (error) {
-        console.error('Erreur lors de la récupération des commandes:', error);
-        errorMessage.value = 'Impossible de récupérer les commandes. Veuillez réessayer.';
-    } finally {
-        isLoading.value = false;
-    }
-};
-
+// Fonction pour mettre à jour le statut d'une commande
 const updateOrderStatus = async (order) => {
     try {
+        // Mettre à jour le statut de la commande via le store
         await orderStore.updateOrder(order.id, { status: order.status });
-        fetchOrders(pagination.value.page);
     } catch (error) {
         console.error('Erreur lors de la mise à jour du statut de la commande:', error);
         errorMessage.value = 'Impossible de mettre à jour le statut de la commande.';
     }
 };
 
-const prevPage = () => {
-    if (pagination.value.page > 1) {
-        fetchOrders(pagination.value.page - 1);
-    }
-};
-
-const nextPage = () => {
-    if (pagination.value.page < pagination.value.totalPages) {
-        fetchOrders(pagination.value.page + 1);
-    }
-};
-
-const userNames = ref({});
-
-const fetchUserNames = async () => {
-    try {
-        const users = await userStore.fetchAllUsers();
-        users.forEach(user => {
-            userNames.value[user.id] = user.name;
-        });
-    } catch (error) {
-        console.error('Erreur lors de la récupération des utilisateurs:', error);
-        errorMessage.value = 'Impossible de récupérer les noms des utilisateurs.';
-    }
-};
-
-const getUserName = (userId) => {
-    return userNames.value[userId] || 'Utilisateur inconnu';
-};
-
+// Chargement initial
 onMounted(async () => {
-    await fetchUserNames();
-    fetchOrders();
+    try {
+        await userStore.fetchUser(); // Charge les informations de l'utilisateur
+        await fetchUserNames(); // Charge les noms des utilisateurs
+        fetchOrders(); // Charge les commandes
+    } catch (error) {
+        console.error('Erreur lors de l’initialisation de la vue:', error);
+        errorMessage.value = 'Impossible de charger les données. Veuillez réessayer.';
+    }
 });
 </script>

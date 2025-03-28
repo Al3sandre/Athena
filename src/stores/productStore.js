@@ -42,6 +42,10 @@ export const useProductStore = defineStore('productStore', {
           },
         });
         this.products.push(response.data);
+
+        // Synchroniser les produits après la création
+        await this.fetchProducts();
+
         return response.data;
       } catch (error) {
         console.error('Erreur lors de l’ajout du produit :', error);

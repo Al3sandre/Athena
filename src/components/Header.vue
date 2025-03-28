@@ -44,7 +44,7 @@ onMounted(async () => {
 });
 
 const user = computed(() => userStore.user);
-const isAdmin = computed(() => userStore.isAdmin());
+const isAdmin = computed(() => userStore.isAdmin);
 
 const logout = () => {
     if (userStore.token) {

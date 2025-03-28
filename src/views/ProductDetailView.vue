@@ -134,6 +134,7 @@ import { useCategoryStore } from '@/stores/categoryStore';
 import { useUserStore } from '@/stores/userStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useNotificationStore } from '@/stores/notifications';
+import { useStockStore } from '@/stores/stockstore';
 
 const router = useRouter();
 const route = useRoute();
@@ -142,6 +143,7 @@ const categoryStore = useCategoryStore();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 const notificationStore = useNotificationStore();
+const stockStore = useStockStore();
 
 const product = ref(null);
 const categories = ref([]);
@@ -151,6 +153,7 @@ const imageFile = ref(null);
 const fileInput = ref(null);
 const loading = ref(true);
 const quantity = ref(1); // Quantité par défaut
+const reactiveStock = ref(0); // Définir une valeur initiale pour le stock
 
 onMounted(async () => {
     try {
@@ -158,6 +161,9 @@ onMounted(async () => {
         categories.value = categoryStore.categories;
         product.value = await productStore.fetchProductById(route.params.id);
         product.value.categories = product.value.categories || []; // Assurez-vous que categories est un tableau
+
+        const stock = await stockStore.fetchStockByProductId(product.value.id);
+        reactiveStock.value = stock; // Mettre à jour la valeur du stock
     } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
     } finally {

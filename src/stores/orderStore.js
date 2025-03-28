@@ -38,11 +38,16 @@ export const useOrderStore = defineStore('orderStore', {
     },
 
     // ✅ Récupérer toutes les commandes
-    async fetchOrders(page = 1, perPage = 30) {
+    async fetchOrders(page = 1, perPage = 30, userId = null, isAdmin = false) {
       try {
-        const response = await pb.get('/orders', {
-          params: { page, perPage },
-        });
+        const params = { page, perPage };
+
+        // Si l'utilisateur n'est pas admin, ajoutez un filtre par user_id
+        if (!isAdmin && userId) {
+          params.user_id = userId;
+        }
+
+        const response = await pb.get('/orders', { params });
 
         // Vérifiez que les métadonnées existent
         if (!response.data.meta) {
@@ -188,6 +193,33 @@ export const useOrderStore = defineStore('orderStore', {
       } catch (error) {
         console.error('Erreur lors du chargement des détails de la commande :', error);
         this.errorMessage = 'Impossible de charger les détails de la commande.';
+      }
+    },
+    async fetchOrdersByUserId(userId, page = 1) {
+      try {
+        const response = await pb.get('/orders', {
+          params: {
+            user_id: userId, // Filtrer par l'ID de l'utilisateur
+            page,
+          },
+        });
+        this.orders = response.data.orders;
+        this.pagination = response.data.pagination;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des commandes par utilisateur:', error);
+        throw error;
+      }
+    },
+
+    // ✅ Mettre à jour le statut d'une commande
+    async updateOrderStatus(order) {
+      try {
+        // Mettre à jour le statut de la commande via le store
+        await this.updateOrder(order.id, { status: order.status });
+        console.log(`Statut de la commande ${order.id} mis à jour avec succès.`);
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du statut de la commande:', error);
+        this.errorMessage = 'Impossible de mettre à jour le statut de la commande.';
       }
     },
   },
