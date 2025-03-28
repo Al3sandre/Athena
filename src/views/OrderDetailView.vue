@@ -41,6 +41,14 @@
                 </div>
             </div>
             <p v-else class="text-gray-500">Aucun produit dans cette commande.</p>
+
+            <!-- Génération de la facture -->
+            <div v-if="order.status === 'livrer'" class="mt-6">
+                <button @click="generateInvoice"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow-md">
+                    Générer la facture
+                </button>
+            </div>
         </div>
 
         <!-- Chargement -->
@@ -54,25 +62,24 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useOrderStore } from '@/stores/orderStore';
-import { useUserStore } from '@/stores/userStore'; // Importez le store utilisateur si disponible
+import { useUserStore } from '@/stores/userStore';
+import jsPDF from 'jspdf';
 
 const route = useRoute();
 const orderStore = useOrderStore();
-const userStore = useUserStore(); // Store utilisateur
+const userStore = useUserStore();
 const order = ref(null);
 const orderItems = ref([]);
-const user = ref(null); // Stocke les informations de l'utilisateur
+const user = ref(null);
 const orderStatuses = ['en cours', 'en transfert', 'en preparation', 'livrer'];
 
 const fetchOrderDetails = async () => {
     try {
-        // Récupère les détails de la commande
         order.value = await orderStore.fetchOrderById(route.params.id);
-
-        // Utilise directement les items de la commande
-        orderItems.value = order.value.items;
-
-        // Récupère les informations de l'utilisateur
+        orderItems.value = order.value.items.map((item) => ({
+            ...item,
+            price: parseFloat(item.price) || 0 // Convertit `price` en nombre ou définit 0 par défaut
+        }));
         user.value = await userStore.fetchUserById(order.value.user_id);
     } catch (error) {
         console.error('Erreur lors du chargement des détails de la commande :', error);
@@ -80,19 +87,20 @@ const fetchOrderDetails = async () => {
 };
 
 const calculateTotalCost = () => {
-    return orderItems.value.reduce((total, item) => total + item.quantity * item.price, 0).toFixed(2);
+    return orderItems.value.reduce((total, item) => {
+        return total + item.quantity * item.price; // `price` est maintenant un nombre
+    }, 0).toFixed(2);
 };
 
 const updateOrderStatus = async (status) => {
     try {
         await orderStore.updateOrder(order.value.id, { status });
-        order.value.status = status; // Met à jour localement le statut
+        order.value.status = status;
     } catch (error) {
         console.error('Erreur lors de la mise à jour du statut de la commande :', error);
     }
 };
 
-// Fonction pour obtenir une classe CSS en fonction du statut
 const getStatusClass = (status) => {
     switch (status) {
         case 'en cours':
@@ -108,13 +116,89 @@ const getStatusClass = (status) => {
     }
 };
 
-// Fonction pour obtenir l'image du produit
 const getProductImage = (imagePath) => {
     if (!imagePath) {
-        return '/images/placeholder.png'; // Image par défaut si aucune image n'est disponible
+        return '/images/placeholder.png';
     }
-    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${imagePath}`; // Concatène l'URL de base avec le chemin de l'image
+    return `${import.meta.env.VITE_BASE_IMAGE_URL}/storage/${imagePath}`;
 };
+
+const generateInvoice = () => {
+    if (order.value.status !== 'livrer') {
+        console.error('La facture ne peut être générée que lorsque le statut est "livrer".');
+        return;
+    }
+
+    const doc = new jsPDF();
+
+    // Titre de la facture
+    doc.setFontSize(22);
+    doc.setTextColor(40);
+    doc.text('Facture', 105, 20, { align: 'center' });
+
+    // Informations sur la commande
+    doc.setFontSize(12);
+    doc.setTextColor(60);
+    doc.text(`ID de la commande : ${order.value.id}`, 20, 40);
+    doc.text(`Nom du client : ${user.value?.name || 'Utilisateur inconnu'}`, 20, 50);
+    doc.text(`Date : ${new Date().toLocaleDateString()}`, 20, 60);
+
+    // Ligne de séparation
+    doc.setDrawColor(200);
+    doc.line(20, 65, 190, 65);
+
+    // Tableau des produits
+    let startY = 80;
+    doc.setFontSize(14);
+    doc.setTextColor(40);
+    doc.text('Détails des produits', 20, startY - 10);
+
+    // En-tête du tableau
+    doc.setFontSize(12);
+    doc.setFillColor(230, 230, 230);
+    doc.rect(20, startY, 170, 10, 'F'); // Fond gris clair
+    doc.text('Produit', 25, startY + 7);
+    doc.text('Quantité', 90, startY + 7, { align: 'right' });
+    doc.text('Prix unitaire', 130, startY + 7, { align: 'right' });
+    doc.text('Sous-total', 180, startY + 7, { align: 'right' });
+
+    startY += 15;
+
+    // Contenu du tableau
+    orderItems.value.forEach((item) => {
+        const productName = item.product?.name || 'Produit inconnu';
+        const quantity = item.quantity || 0;
+        const price = item.price; // `price` est maintenant un nombre
+        const subtotal = quantity * price;
+
+        // Ajoutez les données au tableau
+        doc.text(productName, 25, startY);
+        doc.text(`${quantity}`, 90, startY, { align: 'right' });
+        doc.text(`${price.toFixed(2)} €`, 130, startY, { align: 'right' });
+        doc.text(`${subtotal.toFixed(2)} €`, 180, startY, { align: 'right' });
+
+        startY += 10;
+
+        // Ajoutez une ligne de séparation entre les produits
+        doc.setDrawColor(220);
+        doc.line(20, startY - 5, 190, startY - 5);
+    });
+
+    // Montant total
+    startY += 10;
+    doc.setFontSize(14);
+    doc.setTextColor(40);
+    doc.text(`Montant total : ${calculateTotalCost()} €`, 20, startY);
+
+    // Pied de page
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Merci pour votre achat !', 105, 290, { align: 'center' });
+
+    // Générer et télécharger le PDF
+    doc.save(`Facture_Commande_${order.value.id}.pdf`);
+};
+
 onMounted(() => {
     fetchOrderDetails();
 });
